@@ -1,0 +1,15 @@
+[package]
+name = "pendulum-launch"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "pendulum_launch"
+path = "src/main.rs"
+
+[lib]
+name = "lib_pendulum_launch"
+path = "src/lib.rs"
+
+[dependencies]
+ctrlc = "3.2.1"
