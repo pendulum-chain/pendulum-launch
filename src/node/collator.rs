@@ -1,8 +1,8 @@
 use super::Node;
 use crate::{PathBuffer, Task};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CollatorRelay {
     chain: PathBuffer,
     port: u16,
@@ -22,7 +22,7 @@ impl CollatorRelay {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Collator {
     inner: Node,
     relay: CollatorRelay,

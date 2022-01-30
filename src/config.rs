@@ -1,8 +1,8 @@
 use crate::node::{Collator, Validator};
 use crate::Task;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     pub validators: Vec<Validator>,
     pub collators: Vec<Collator>,

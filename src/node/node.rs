@@ -1,8 +1,8 @@
 use crate::PathBuffer;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::process;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Node {
     name: Option<String>,
     bin: PathBuffer,

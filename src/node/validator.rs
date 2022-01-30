@@ -1,8 +1,8 @@
 use super::Node;
 use crate::Task;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Validator(Node);
 
 impl Validator {
