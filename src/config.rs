@@ -4,13 +4,25 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
+    pub name: Option<String>,
+    pub author: Option<String>,
     pub validators: Vec<Validator>,
     pub collators: Vec<Collator>,
 }
 
 impl Config {
-    pub fn new(validators: Vec<Validator>, collators: Vec<Collator>) -> Self {
+    pub fn new(
+        name: Option<&str>,
+        author: Option<&str>,
+        validators: Vec<Validator>,
+        collators: Vec<Collator>,
+    ) -> Self {
+        let name = name.map(|name| name.to_string());
+        let author = author.map(|author| author.to_string());
+
         Self {
+            name,
+            author,
             validators,
             collators,
         }

@@ -52,7 +52,19 @@ fn init() -> Launcher {
         Collator::new(inner, relay)
     };
 
-    Launcher::new(Config::new(vec![validator], vec![collator]))
+    let config = Config::new(
+        Some("Pendulum"),
+        Some("xiuxiu"),
+        vec![validator],
+        vec![collator],
+    );
+
+    // Generate toml config
+    println!("{}", toml::to_string_pretty(&config).unwrap());
+    // Generate json config
+    println!("{}", serde_json::to_string_pretty(&config).unwrap());
+
+    Launcher::new(config)
 }
 
 fn main() -> Result<()> {
