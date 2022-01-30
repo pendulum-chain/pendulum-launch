@@ -1,12 +1,13 @@
 use super::Node;
 use crate::Task;
+use serde::Deserialize;
 
-#[derive(Debug)]
-pub struct Validator<'a>(Node<'a>);
+#[derive(Debug, Deserialize)]
+pub struct Validator(Node);
 
-impl<'a> Validator<'a> {
+impl Validator {
     #[inline]
-    pub fn new(node: Node<'a>) -> Self {
+    pub fn new(node: Node) -> Self {
         Self(node)
     }
 

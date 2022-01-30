@@ -1,14 +1,15 @@
 use crate::node::{Collator, Validator};
 use crate::Task;
+use serde::Deserialize;
 
-#[derive(Debug)]
-pub struct Config<'a> {
-    pub validators: Vec<Validator<'a>>,
-    pub collators: Vec<Collator<'a>>,
+#[derive(Debug, Deserialize)]
+pub struct Config {
+    pub validators: Vec<Validator>,
+    pub collators: Vec<Collator>,
 }
 
-impl<'a> Config<'a> {
-    pub fn new(validators: Vec<Validator<'a>>, collators: Vec<Collator<'a>>) -> Self {
+impl Config {
+    pub fn new(validators: Vec<Validator>, collators: Vec<Collator>) -> Self {
         Self {
             validators,
             collators,

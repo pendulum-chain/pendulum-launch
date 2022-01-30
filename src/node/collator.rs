@@ -1,18 +1,18 @@
 use super::Node;
-use crate::Task;
-use std::path::PathBuf;
-use std::rc::Rc;
+use crate::{PathBuffer, Task};
+use serde::Deserialize;
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct CollatorRelay {
-    chain: Rc<PathBuf>,
+    chain: PathBuffer,
     port: u16,
     ws_port: u16,
     rpc_port: Option<u16>,
 }
 
 impl CollatorRelay {
-    pub fn new(chain: Rc<PathBuf>, port: u16, ws_port: u16, rpc_port: Option<u16>) -> Self {
+    pub fn new(chain: &str, port: u16, ws_port: u16, rpc_port: Option<u16>) -> Self {
+        let chain = PathBuffer::from(chain);
         Self {
             chain,
             port,
@@ -22,15 +22,15 @@ impl CollatorRelay {
     }
 }
 
-#[derive(Debug)]
-pub struct Collator<'a> {
-    inner: Node<'a>,
+#[derive(Debug, Deserialize)]
+pub struct Collator {
+    inner: Node,
     relay: CollatorRelay,
 }
 
-impl<'a> Collator<'a> {
+impl Collator {
     #[inline]
-    pub fn new(inner: Node<'a>, relay: CollatorRelay) -> Self {
+    pub fn new(inner: Node, relay: CollatorRelay) -> Self {
         Self { inner, relay }
     }
 

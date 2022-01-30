@@ -1,31 +1,39 @@
-use std::path::PathBuf;
+use crate::PathBuffer;
+use serde::Deserialize;
 use std::process;
-use std::rc::Rc;
 
-#[derive(Debug)]
-pub struct Node<'a> {
-    name: Option<&'a str>,
-    bin: Rc<PathBuf>,
-    chain: Rc<PathBuf>,
-    args: Vec<&'a str>,
+#[derive(Debug, Deserialize)]
+pub struct Node {
+    name: Option<String>,
+    bin: PathBuffer,
+    chain: PathBuffer,
+    args: Vec<String>,
     port: u16,
     ws_port: u16,
     rpc_port: Option<u16>,
 }
 
-impl<'a> Node<'a> {
+impl Node {
     pub fn new(
-        name: Option<&'a str>,
-        bin: Rc<PathBuf>,
-        chain: Rc<PathBuf>,
-        args: Vec<&'a str>,
+        name: Option<&str>,
+        bin: &str,
+        chain: &str,
+        args: Vec<&str>,
         port: u16,
         ws_port: u16,
         rpc_port: Option<u16>,
     ) -> Self {
+        let name = match name {
+            Some(name) => Some(name.to_owned()),
+            None => None,
+        };
+        let bin = PathBuffer::from(bin);
+        let chain = PathBuffer::from(chain);
+        let args = args.into_iter().map(|arg| arg.to_owned()).collect();
+
         Self {
-            bin,
             name,
+            bin,
             args,
             chain,
             port,

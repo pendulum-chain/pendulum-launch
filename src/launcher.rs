@@ -16,7 +16,7 @@ pub struct Launcher {
 }
 
 impl<'a> Launcher {
-    pub fn new(config: Config<'a>) -> Self {
+    pub fn new(config: Config) -> Self {
         let tasks = config.generate_tasks();
 
         Self {
