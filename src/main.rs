@@ -1,15 +1,17 @@
-use lib_pendulum_launch::{Collator, CollatorRelay, Node, Validator};
-use std::error::Error;
+use lib_pendulum_launch::{
+    error::Result,
+    node::{Collator, CollatorRelay, Node, Validator},
+    Config, Launcher,
+};
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::rc::Rc;
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let validator_bin: PathBuf = PathBuf::from("./bin/polkadot");
-    let validator_chain: PathBuf = PathBuf::from("./specs/rococo-custom-2-raw.json");
+fn init_launcher() -> Launcher {
+    let validator_bin = Rc::new(PathBuf::from("./bin/polkadot"));
+    let validator_chain = Rc::new(PathBuf::from("./specs/rococo-custom-2-raw.json"));
 
-    let collator_bin: PathBuf = PathBuf::from("./bin/pendulum-collator");
-    let collator_chain: PathBuf = PathBuf::from("./specs/rococo-local-parachain-raw.json");
+    let collator_bin = Rc::new(PathBuf::from("./bin/pendulum-collator"));
+    let collator_chain = Rc::new(PathBuf::from("./specs/rococo-local-parachain-raw.json"));
 
     let validator = {
         let name = Some("validator_node");
@@ -20,8 +22,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let node = Node::new(
             name,
-            &validator_bin,
-            &validator_chain,
+            validator_bin,
+            validator_chain.clone(),
             args,
             port,
             ws_port,
@@ -38,11 +40,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         let ws_port = 8844;
         let rpc_port = None;
 
-        let relay = CollatorRelay::new(&validator_chain, 30345, 9955, None);
+        let relay = CollatorRelay::new(validator_chain, 30345, 9955, None);
         let inner = Node::new(
             name,
-            &collator_bin,
-            &collator_chain,
+            collator_bin,
+            collator_chain,
             args,
             port,
             ws_port,
@@ -52,19 +54,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         Collator::new(inner, relay)
     };
 
-    let running = Arc::new(AtomicBool::new(true));
-    let r = running.clone();
+    Launcher::new(Config::new(vec![validator], vec![collator]))
+}
 
-    let mut validator_handle = validator.run()?;
-    let mut collator_handle = collator.run()?;
-
-    ctrlc::set_handler(move || {
-        r.store(false, Ordering::SeqCst);
-        validator_handle.kill().expect("Failed to kill validator");
-        collator_handle.kill().expect("Failed to kill collator");
-    })?;
-
-    while running.load(Ordering::SeqCst) {}
-
-    Ok(())
+fn main() -> Result<()> {
+    let mut launcher = init_launcher();
+    launcher.run()
 }

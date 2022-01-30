@@ -1,6 +1,11 @@
 #![allow(dead_code)]
 
-pub mod config;
-mod node;
+mod config;
+pub mod error;
+mod launcher;
+pub mod node;
+mod task;
 
-pub use node::{Collator, CollatorRelay, Node, Validator};
+pub use config::Config;
+pub use launcher::Launcher;
+pub(crate) use task::Task;
