@@ -35,6 +35,9 @@ impl<'a> Launcher {
         self.start()?;
 
         let active = Arc::clone(&self.active);
+        ctrlc::set_handler(move || active.store(false, Ordering::Relaxed))?;
+
+        let active = Arc::clone(&self.active);
         while active.load(Ordering::Relaxed) {
             thread::sleep(Duration::from_millis(50));
         }
@@ -43,19 +46,10 @@ impl<'a> Launcher {
     }
 
     fn start(&mut self) -> Result<()> {
-        let active = Arc::clone(&self.active);
-        ctrlc::set_handler(move || active.store(false, Ordering::Relaxed))?;
-
-        self.tasks
-            .iter_mut()
-            .map(|task| task.spawn())
-            .collect::<Result<()>>()
+        self.tasks.iter_mut().try_for_each(|task| task.spawn())
     }
 
     fn shutdown(&mut self) -> Result<()> {
-        self.tasks
-            .iter_mut()
-            .map(|task| task.kill())
-            .collect::<Result<()>>()
+        self.tasks.iter_mut().try_for_each(|task| task.kill())
     }
 }
