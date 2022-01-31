@@ -1,15 +1,7 @@
 use crate::{Error, Result};
+use lib_pendulum_launch::{Config, Launcher};
 use std::{path::PathBuf, process};
-use structopt::{clap::arg_enum, StructOpt};
-
-arg_enum! {
-    #[derive(Debug)]
-    enum Command {
-        Launch,
-        ExportGenesis,
-        ExportSpecs
-    }
-}
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 #[structopt()]
@@ -40,7 +32,7 @@ pub struct Opt {
 
 impl Opt {
     fn export_genesis(&self) -> Result<()> {
-        let collator_bin = match self.genesis_outdir {
+        let collator_bin = match &self.genesis_outdir {
             Some(bin) => match bin.to_str() {
                 Some(path) => path,
                 None => return Err(Error::CollatorBin),
@@ -48,7 +40,7 @@ impl Opt {
             None => return Err(Error::CollatorBin),
         };
 
-        let collator_spec = match self.collator_spec {
+        let collator_spec = match &self.collator_spec {
             Some(spec) => match spec.to_str() {
                 Some(path) => path,
                 None => return Err(Error::Genesis),
@@ -56,7 +48,7 @@ impl Opt {
             None => return Err(Error::Genesis),
         };
 
-        let genesis_outdir = match self.genesis_outdir {
+        let genesis_outdir = match &self.genesis_outdir {
             Some(dir) => match dir.to_str() {
                 Some(path) => path,
                 None => return Err(Error::Genesis),

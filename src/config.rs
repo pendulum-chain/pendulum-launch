@@ -1,6 +1,10 @@
-use crate::node::{Collator, Validator};
-use crate::Task;
+use crate::{
+    error::{Error, Result, SerdeError},
+    node::{Collator, Validator},
+    Task,
+};
 use serde::{Deserialize, Serialize};
+use std::{fs, path::PathBuf};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
@@ -25,6 +29,14 @@ impl Config {
             author,
             validators,
             collators,
+        }
+    }
+
+    pub fn deserialize(path: PathBuf) -> Result<Self> {
+        let raw_config = &fs::read(path)?;
+        match serde_json::from_slice(&raw_config) {
+            Ok(config) => Ok(config),
+            Err(err) => Err(Error::Serde(SerdeError::Deserialize(err.to_string()))),
         }
     }
 

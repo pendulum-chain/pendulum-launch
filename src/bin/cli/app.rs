@@ -9,6 +9,12 @@ use std::{
     path::PathBuf,
 };
 
+pub enum Command {
+    Launch,
+    ExportGenesis,
+    ExportSpecs,
+}
+
 pub struct App {
     launcher: Option<Launcher>,
     collator_bin: Option<PathBuf>,
@@ -28,54 +34,81 @@ impl App {
         }
     }
 
-    // fn run(&mut self) -> Result<()> {
-    //     self.launcher
-    //         .unwrap_or(return Err(Error::CollatorBin))
-    //         .run()
-    // }
-
-    fn search_default_config(&self) -> Result<Option<PathBuf>> {
-        for entry in fs::read_dir(".")? {
-            if let Some(path) = self.validate_config_entry(entry)? {
-                return Ok(Some(path));
-            }
+    pub fn run(&mut self) -> Result<()> {
+        match &mut self.launcher {
+            Some(launcher) => match launcher.run() {
+                Ok(()) => Ok(()),
+                Err(err) => Err(Error::Lib(err)),
+            },
+            None => Err(Error::CollatorBin),
         }
-
-        Ok(None)
     }
 
-    fn validate_config_entry(&self, entry: io::Result<DirEntry>) -> Result<Option<PathBuf>> {
-        let path = entry?.path();
-        if path.is_file() {
-            let path_name = path.as_os_str();
-            if path_name == "launch.toml" || path_name == "launch.json" {
-                return Ok(Some(path));
+    fn validate(&self, command: Command) -> Result<()> {
+        match command {
+            Command::Launch => match self.launcher {
+                Some(_) => Ok(()),
+                None => Err(Error::LaunchCommand),
+            },
+            Command::ExportGenesis | Command::ExportSpecs => {
+                match self.collator_bin.is_some() && self.collator_spec.is_some() {
+                    true => Ok(()),
+                    false => Err(Error::GenCommand),
+                }
             }
         }
-
-        Ok(None)
     }
 }
 
-impl From<Opt> for App {
-    fn from(&self, opt: Opt) -> Self {
+impl TryFrom<Opt> for App {
+    type Error = Error;
+
+    fn try_from(opt: Opt) -> Result<Self> {
         let config = match opt.config {
-            Some(config) => config,
-            None => Self::search_default_config();
+            Some(config) => Some(config),
+            None => search_default_config()?,
+        };
+
+        let launcher = match config {
+            Some(path) => {
+                let config = deserialize_config(path)?;
+                Some(Launcher::from(config))
+            }
+            None => None,
+        };
+
+        Ok(Self::new(launcher, opt.collator_bin, opt.collator_spec))
+    }
+}
+
+fn deserialize_config(path: PathBuf) -> Result<Config> {
+    println!("here");
+    match Config::deserialize(path) {
+        Ok(config) => Ok(config),
+        Err(err) => Err(Error::Lib(err)),
+    }
+}
+
+fn search_default_config() -> Result<Option<PathBuf>> {
+    for entry in fs::read_dir(".")? {
+        if let Some(path) = try_get_config_entry(entry)? {
+            return Ok(Some(path));
         }
     }
+
+    Ok(None)
 }
 
-impl From<Config> for App {
-    fn from(config: Config) -> Self {
-        Self::new(Launcher::from(config))
+fn try_get_config_entry(entry: io::Result<DirEntry>) -> Result<Option<PathBuf>> {
+    let path = entry?.path();
+    if path.is_file() {
+        let path_name = path.as_os_str();
+        if path_name == "launch.toml" || path_name == "launch.json" {
+            return Ok(Some(path));
+        }
     }
-}
 
-impl From<Launcher> for App {
-    fn from(launcher: Launcher) -> Self {
-        Self::new(launcher)
-    }
+    Ok(None)
 }
 
 pub fn init() -> Launcher {
