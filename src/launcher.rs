@@ -53,3 +53,9 @@ impl<'a> Launcher {
         self.tasks.iter_mut().try_for_each(|task| task.kill())
     }
 }
+
+impl From<Config> for Launcher {
+    fn from(config: Config) -> Self {
+        Self::new(config)
+    }
+}
