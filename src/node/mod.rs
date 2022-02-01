@@ -55,7 +55,7 @@ impl Node {
         command.arg("--ws-port");
         command.arg(self.ws_port.to_string());
         if let Some(rpc_port) = self.rpc_port {
-            command.arg(format!("--rpc-port {rpc_port}"));
+            command.arg(format!("--rpc-port {rpc_port}", rpc_port = rpc_port));
         };
 
         command
