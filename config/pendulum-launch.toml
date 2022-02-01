@@ -1,21 +1,29 @@
-name = "Pendulum"
 author = "xiuxiu"
+name = "Pendulum"
 
 [[validators]]
-name = "validator_node"
-bin = "./bin/polkadot"
+args = ["--alice", "--base-path=/tmp/relay/alice"]
+bin = "../polkadot/target/release/polkadot"
 chain = "./specs/rococo-custom-2-raw.json"
-args = []
+name = "validator_node_alice"
 port = 30343
 ws_port = 9944
 
+[[validators]]
+args = ["--bob", "--base-path=/tmp/relay/bob"]
+bin = "../polkadot/target/release/polkadot"
+chain = "./specs/rococo-custom-2-raw.json"
+name = "validator_node_bob"
+port = 30344
+ws_port = 9945
+
 [[collators]]
 [collators.inner]
-name = "collator_node"
-bin = "./bin/pendulum-collator"
+args = ["--alice", "--base-path=/tmp/parachain/alice", "--force-authoring", "--enable-offchain-indexing=TRUE"]
+bin = "../pendulum/target/release/polkadot"
 chain = "./specs/rococo-local-parachain-raw.json"
-args = ["--force-authoring"]
-port = 30344
+name = "collator_node"
+port = 40333
 ws_port = 8844
 
 [collators.relay]

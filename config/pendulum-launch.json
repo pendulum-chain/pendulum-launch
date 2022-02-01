@@ -3,12 +3,21 @@
   "author": "xiuxiu",
   "validators": [
     {
-      "name": "validator_node",
-      "bin": "./bin/polkadot",
+      "name": "validator_node_alice",
+      "bin": "../polkadot/target/release/polkadot",
       "chain": "./specs/rococo-custom-2-raw.json",
-      "args": [],
+      "args": ["--alice", "--base-path=/tmp/relay/alice"],
       "port": 30343,
       "ws_port": 9944,
+      "rpc_port": null
+    },
+    {
+      "name": "validator_node_bob",
+      "bin": "../polkadot/target/release/polkadot",
+      "chain": "./specs/rococo-custom-2-raw.json",
+      "args": ["--bob", "--base-path=/tmp/relay/bob"],
+      "port": 30344,
+      "ws_port": 9945,
       "rpc_port": null
     }
   ],
@@ -16,12 +25,10 @@
     {
       "inner": {
         "name": "collator_node",
-        "bin": "./bin/pendulum-collator",
+        "bin": "../pendulum/target/release/parachain-collator",
         "chain": "./specs/rococo-local-parachain-raw.json",
-        "args": [
-          "--force-authoring"
-        ],
-        "port": 30344,
+        "args": ["--alice", "--base-path=/tmp/parachain/alice", "--force-authoring", "--enable-offchain-indexing=TRUE"],
+        "port": 40333,
         "ws_port": 8844,
         "rpc_port": null
       },
