@@ -4,11 +4,11 @@ Add Command and Task trait
 use std::process;
 use crate::error::Result;
 
-trait Command<T> {
+trait Command {
   fn as_command(&self) -> std::process::Command;
 }
 
-trait Process<T> {
+trait Process {
   fn spawn(&self) -> Result<process::Child>;
   fn kill(&self) -> Result<()>;
 }
@@ -45,7 +45,7 @@ subcommands:
             help: Collator binary
             takes_value: true
         - outdir:
-            short: l
+            short: o
             long: outdir
             value_name: DIR
             help: Sets an alternate output directory for genesis data
@@ -60,7 +60,7 @@ subcommands:
             help: Collator binary
             takes_value: true
         - outdir:
-            short: l
+            short: o
             long: outdir
             value_name: DIR
             help: Sets an alternate output directory for specs
