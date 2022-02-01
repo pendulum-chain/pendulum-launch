@@ -1,4 +1,4 @@
-use crate::{Error, Opt, Result};
+use crate::{opt::Command, Error, Options, Result};
 use lib_pendulum_launch::{
     node::{Collator, CollatorRelay, Node, Validator},
     Config, Launcher,
@@ -7,65 +7,61 @@ use std::{
     fs::{self, DirEntry},
     io,
     path::PathBuf,
+    process,
 };
+use structopt::StructOpt;
 
-pub enum Command {
-    Launch,
-    ExportGenesis,
-    ExportSpecs,
-}
-
-pub struct App {
-    launcher: Option<Launcher>,
-    collator_bin: Option<PathBuf>,
-    collator_spec: Option<PathBuf>,
-}
+pub struct App(Options);
+// {
+//     launcher: Option<Launcher>,
+// collator_bin: Option<PathBuf>,
+// collator_spec: Option<PathBuf>,
+// }
 
 impl App {
-    pub fn new(
-        launcher: Option<Launcher>,
-        collator_bin: Option<PathBuf>,
-        collator_spec: Option<PathBuf>,
-    ) -> Self {
-        Self {
-            launcher,
-            collator_bin,
-            collator_spec,
-        }
+    // pub fn new(
+    //     launcher: Option<Launcher>,
+    //     // collator_bin: Option<PathBuf>,
+    //     // collator_spec: Option<PathBuf>,
+    // ) -> Self {
+    //     Self {
+    //         launcher,
+    //         // collator_bin,
+    //         // collator_spec,
+    //     }
+    // }
+
+    pub fn new(options: Options) -> Self {
+        Self(options)
+    }
+
+    pub fn from_args() -> Self {
+        Self::new(Options::from_args())
     }
 
     pub fn run(&mut self) -> Result<()> {
-        match &mut self.launcher {
-            Some(launcher) => match launcher.run() {
-                Ok(()) => Ok(()),
-                Err(err) => Err(Error::Lib(err)),
+        match &self.0.cmd {
+            Some(cmd) => match cmd {
+                Command::ExportGenesis {
+                    collator_bin,
+                    collator_spec,
+                    outdir,
+                } => self.export_genesis(collator_bin, collator_spec, outdir)?,
+                Command::GenerateSpecs { .. } => eprintln!("Unimplemented"),
             },
-            None => Err(Error::CollatorBin),
-        }
+            None => self.launch()?,
+        };
+
+        Ok(())
     }
 
-    fn validate(&self, command: Command) -> Result<()> {
-        match command {
-            Command::Launch => match self.launcher {
-                Some(_) => Ok(()),
-                None => Err(Error::LaunchCommand),
-            },
-            Command::ExportGenesis | Command::ExportSpecs => {
-                match self.collator_bin.is_some() && self.collator_spec.is_some() {
-                    true => Ok(()),
-                    false => Err(Error::GenCommand),
-                }
-            }
-        }
-    }
-}
+    // pub fn from_args() -> Result<Self> {
+    //     Self::try_from(Options::from_args())
+    // }
 
-impl TryFrom<Opt> for App {
-    type Error = Error;
-
-    fn try_from(opt: Opt) -> Result<Self> {
-        let config = match opt.config {
-            Some(config) => Some(config),
+    fn launch(&mut self) -> Result<()> {
+        let config = match &self.0.config {
+            Some(config) => Some(config.to_owned()),
             None => search_default_config()?,
         };
 
@@ -77,12 +73,101 @@ impl TryFrom<Opt> for App {
             None => None,
         };
 
-        Ok(Self::new(launcher, opt.collator_bin, opt.collator_spec))
+        match launcher {
+            Some(mut launcher) => match launcher.run() {
+                Ok(()) => Ok(()),
+                Err(err) => Err(Error::Lib(err)),
+            },
+            None => Err(Error::InvalidBinary),
+        }
     }
+
+    fn export_genesis(
+        &self,
+        bin: &PathBuf,
+        chain: &PathBuf,
+        outdir: &Option<PathBuf>,
+    ) -> Result<()> {
+        let collator_bin = match bin.to_str() {
+            Some(path) => path,
+            None => return Err(Error::InvalidBinary),
+        };
+
+        let collator_spec = match chain.to_str() {
+            Some(path) => path,
+            None => return Err(Error::InvalidDirectory),
+        };
+
+        let genesis_outdir = match &outdir {
+            Some(dir) => match dir.to_str() {
+                Some(path) => path,
+                None => return Err(Error::InvalidDirectory),
+            },
+            None => ".",
+        };
+
+        process::Command::new(collator_bin)
+            .args([
+                "export-genesis-wasm",
+                "--chain",
+                collator_spec,
+                // ">",
+                // format!("{genesis_outdir}/chain-wasm").as_str(),
+            ])
+            .status()?;
+
+        process::Command::new(collator_bin)
+            .args([
+                "export-genesis-state",
+                "--chain",
+                collator_spec,
+                // ">",
+                // format!("{genesis_outdir}/chain-state").as_str(),
+            ])
+            .status()?;
+
+        Ok(())
+    }
+
+    //     fn validate(&self, command: Command) -> Result<()> {
+    //         match command {
+    //             Command::Launch => match self.launcher {
+    //                 Some(_) => Ok(()),
+    //                 None => Err(Error::LaunchCommand),
+    //             },
+    //             Command::ExportGenesis | Command::ExportSpecs => {
+    //                 match self.collator_bin.is_some() && self.collator_spec.is_some() {
+    //                     true => Ok(()),
+    //                     false => Err(Error::GenCommand),
+    //                 }
+    //             }
+    //         }
+    //     }
 }
 
+// impl TryFrom<Options> for App {
+//     type Error = Error;
+
+//     fn try_from(options: Options) -> Result<Self> {
+//         let config = match options.config {
+//             Some(config) => Some(config),
+//             None => search_default_config()?,
+//         };
+
+//         let launcher = match config {
+//             Some(path) => {
+//                 let config = deserialize_config(path)?;
+//                 Some(Launcher::from(config))
+//             }
+//             None => None,
+//         };
+
+//         // Ok(Self::new(launcher, options.collator_bin, options.collator_spec))
+//         Ok(Self::new(launcher))
+//     }
+// }
+
 fn deserialize_config(path: PathBuf) -> Result<Config> {
-    println!("here");
     match Config::deserialize(path) {
         Ok(config) => Ok(config),
         Err(err) => Err(Error::Lib(err)),
@@ -109,78 +194,4 @@ fn try_get_config_entry(entry: io::Result<DirEntry>) -> Result<Option<PathBuf>> 
     }
 
     Ok(None)
-}
-
-pub fn init() -> Launcher {
-    let validator_bin = "./bin/polkadot";
-    let validator_chain = "./specs/rococo-custom-2-raw.json";
-
-    let collator_bin = "./bin/pendulum-collator";
-    let collator_chain = "./specs/rococo-local-parachain-raw.json";
-
-    let validator = {
-        let name = Some("validator_node");
-        let args = vec![];
-        let port = 30343;
-        let ws_port = 9944;
-        let rpc_port = None;
-
-        let node = Node::new(
-            name,
-            validator_bin,
-            validator_chain,
-            args,
-            port,
-            ws_port,
-            rpc_port,
-        );
-
-        Validator::new(node)
-    };
-
-    let collator = {
-        let name = Some("collator_node");
-        let args = vec!["--force-authoring"];
-        let port = 30344;
-        let ws_port = 8844;
-        let rpc_port = None;
-
-        let relay = CollatorRelay::new(validator_chain, 30345, 9955, None);
-        let inner = Node::new(
-            name,
-            collator_bin,
-            collator_chain,
-            args,
-            port,
-            ws_port,
-            rpc_port,
-        );
-
-        Collator::new(inner, relay)
-    };
-
-    let config = Config::new(
-        Some("Pendulum"),
-        Some("xiuxiu"),
-        vec![validator],
-        vec![collator],
-    );
-
-    // Generate toml config
-    // println!("{}", toml::to_string_pretty(&config).unwrap());
-    // std::fs::write(
-    //     &std::path::Path::new("./config/pendulum-launch.toml"),
-    //     toml::to_vec(&config).unwrap(),
-    // )
-    // .unwrap();
-
-    // Generate json config
-    // println!("{}", serde_json::to_string_pretty(&config).unwrap());
-    // std::fs::write(
-    //     &std::path::Path::new("./config/pendulum-launch.json"),
-    //     serde_json::to_string_pretty(&config).unwrap().as_bytes(),
-    // )
-    // .unwrap();
-
-    Launcher::new(config)
 }

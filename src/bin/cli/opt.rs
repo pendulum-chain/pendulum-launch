@@ -4,78 +4,33 @@ use std::{path::PathBuf, process};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
+pub enum Command {
+    #[structopt(about = "Export genesis data")]
+    ExportGenesis {
+        #[structopt(name = "bin", parse(from_os_str), about = "Collator binary")]
+        collator_bin: PathBuf,
+        #[structopt(name = "chain", parse(from_os_str), about = "Collator spec")]
+        collator_spec: PathBuf,
+        #[structopt(short, long, parse(from_os_str), about = "Alternate output directory")]
+        outdir: Option<PathBuf>,
+    },
+    #[structopt(about = "Generate specs")]
+    GenerateSpecs {
+        #[structopt(name = "bin", parse(from_os_str), about = "Collator binary")]
+        collator_bin: PathBuf,
+        #[structopt(short, long, parse(from_os_str), about = "Alternate output directory")]
+        outdir: Option<PathBuf>,
+    },
+}
+
+#[derive(Debug, StructOpt)]
 #[structopt()]
 #[allow(unused)]
-pub struct Opt {
+pub struct Options {
     #[structopt(short, long)]
     pub debug: Option<bool>,
     #[structopt(short, long, parse(from_os_str), about = "Alternate config path")]
     pub config: Option<PathBuf>,
-    #[structopt(short, long, parse(from_os_str), about = "Alternate config path")]
-    pub collator_bin: Option<PathBuf>,
-    #[structopt(short, long, parse(from_os_str), about = "Alternate config path")]
-    pub collator_spec: Option<PathBuf>,
-    #[structopt(long, about = "Collator binary for subcommands")]
-    pub export_genesis: Option<bool>,
-    #[structopt(
-        short,
-        long,
-        parse(from_os_str),
-        about = "Output directory for genesis data"
-    )]
-    pub genesis_outdir: Option<PathBuf>,
-    #[structopt(long, about = "Export specs from collator binary")]
-    pub export_spec: Option<bool>,
-    #[structopt(short, long, parse(from_os_str), about = "Output directory for specs")]
-    pub spec_outdir: Option<PathBuf>,
-}
-
-impl Opt {
-    fn export_genesis(&self) -> Result<()> {
-        let collator_bin = match &self.genesis_outdir {
-            Some(bin) => match bin.to_str() {
-                Some(path) => path,
-                None => return Err(Error::CollatorBin),
-            },
-            None => return Err(Error::CollatorBin),
-        };
-
-        let collator_spec = match &self.collator_spec {
-            Some(spec) => match spec.to_str() {
-                Some(path) => path,
-                None => return Err(Error::Genesis),
-            },
-            None => return Err(Error::Genesis),
-        };
-
-        let genesis_outdir = match &self.genesis_outdir {
-            Some(dir) => match dir.to_str() {
-                Some(path) => path,
-                None => return Err(Error::Genesis),
-            },
-            None => return Err(Error::Genesis),
-        };
-
-        process::Command::new(collator_bin)
-            .args([
-                "export-genesis-wasm",
-                "--chain",
-                collator_spec,
-                ">",
-                format!("{genesis_outdir}/chain-wasm").as_str(),
-            ])
-            .status()?;
-
-        process::Command::new(collator_bin)
-            .args([
-                "export-genesis-state",
-                "--chain",
-                collator_spec,
-                ">",
-                format!("{genesis_outdir}/chain-state").as_str(),
-            ])
-            .status()?;
-
-        Ok(())
-    }
+    #[structopt(subcommand)]
+    pub cmd: Option<Command>,
 }

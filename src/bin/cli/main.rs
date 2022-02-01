@@ -8,18 +8,17 @@ mod opt;
 
 use app::App;
 use error::{Error, Result};
-use opt::Opt;
+use opt::Options;
 
 fn main() -> Result<()> {
-    // let opt = Opt::from_args();
-    // let mut app = App::try_from(opt)?;
-    // app.run()
+    let mut app = App::from_args();
+    app.run()
 
-    let config = deserialize_config()?;
-    let mut launcher = Launcher::from(config);
-    launcher.run()?;
+    // let config = deserialize_config()?;
+    // let mut launcher = Launcher::from(config);
+    // launcher.run()?;
 
-    Ok(())
+    // Ok(())
 }
 
 fn deserialize_config() -> Result<Config> {
