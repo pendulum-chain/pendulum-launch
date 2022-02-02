@@ -1,6 +1,10 @@
 # Pendulum Launch
 A launcher for Pendulum and other substrate based parachains
 
+# Configuration
+Relative paths in your config are assumed to be relative to the current working directory the binary is being run in.
+This is planned to be changed in the future.
+
 # Usage 
 ## Launch parachain 
 ```
