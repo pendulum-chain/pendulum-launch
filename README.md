@@ -4,6 +4,8 @@ A launcher for Pendulum and other substrate based parachains
 # Usage 
 ## Launch parachain 
 ```
+pendulum-launch 0.1.0
+
 USAGE:
     pendulum_launch [OPTIONS] [SUBCOMMAND]
 
@@ -12,8 +14,8 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -c, --config &lt;config&gt;    
-    -d, --debug &lt;debug&gt;      
+    -c, --config <config>    
+    -d, --debug <debug>      
 
 SUBCOMMANDS:
     export-genesis    Export genesis data
@@ -23,6 +25,9 @@ SUBCOMMANDS:
 
 ## Export genesis data
 ```
+pendulum_launch-export-genesis 0.1.0
+Export genesis data
+
 USAGE:
     pendulum_launch export-genesis [OPTIONS] <bin> <chain>
 
@@ -31,6 +36,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
+    -n, --name <name>        
     -o, --outdir <outdir>    
 
 ARGS:
@@ -40,6 +46,9 @@ ARGS:
 
 ## Generate specs
 ```
+pendulum_launch-generate-specs 0.1.0
+Generate specs
+
 USAGE:
     pendulum_launch generate-specs [OPTIONS] <bin>
 
@@ -48,6 +57,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
+    -n, --name <name>        
     -o, --outdir <outdir>    
 
 ARGS:
