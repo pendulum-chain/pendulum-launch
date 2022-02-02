@@ -1,5 +1,6 @@
-use crate::{Error, Result};
+use crate::error::{Error, Result};
 use std::path::PathBuf;
+use std::process::Output;
 use std::{env, process};
 
 // Aquires the rust project root where the binary is being executed
@@ -9,9 +10,7 @@ pub fn locate_project_root() -> Result<PathBuf> {
         .arg("locate-project")
         .output()?;
 
-    if !output.status.success() {
-        return Err(Error::ProcessFailed(output.stderr));
-    }
+    ensure_success(&output)?;
 
     let output = String::from_utf8(output.stdout)?;
     let parsed = json::parse(&output)?;
@@ -19,7 +18,7 @@ pub fn locate_project_root() -> Result<PathBuf> {
     // Gets project root, dropping manifest node
     let root = parsed["root"]
         .as_str()
-        .ok_or_else(|| Error::ProcessFailed(b"no project root".to_vec()))?
+        .ok_or_else(|| Error::ProcessFailed("no project root".to_string()))?
         .split('/')
         .skip(1)
         .fold(String::new(), |acc, entry| match entry {
@@ -28,4 +27,14 @@ pub fn locate_project_root() -> Result<PathBuf> {
         });
 
     Ok(PathBuf::from(root))
+}
+
+pub fn ensure_success(output: &Output) -> Result<()> {
+    match output.status.success() {
+        true => Ok(()),
+        false => {
+            let msg = String::from_utf8_lossy(&output.stderr).to_string();
+            Err(Error::ProcessFailed(msg))
+        }
+    }
 }

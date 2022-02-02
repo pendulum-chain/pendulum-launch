@@ -1,5 +1,8 @@
-use crate::{opt::Command, util::locate_project_root, Options};
-use lib_pendulum_launch::error::{Error, Result};
+use crate::{opt::Command, Options};
+use lib_pendulum_launch::{
+    error::{Error, Result},
+    sub_command, util, Config, Launcher,
+};
 use std::{
     fs::{self, DirEntry},
     io,
@@ -24,13 +27,23 @@ impl App {
                 Command::ExportGenesis {
                     collator_bin,
                     collator_spec,
+                    name,
                     outdir,
                 } => self.export_genesis(
                     collator_bin.to_owned(),
                     collator_spec.to_owned(),
+                    name.to_owned(),
                     outdir.to_owned(),
                 )?,
-                Command::GenerateSpecs { .. } => eprintln!("Unimplemented"),
+                Command::GenerateSpecs {
+                    collator_bin,
+                    name,
+                    outdir,
+                } => self.generate_specs(
+                    collator_bin.to_owned(),
+                    name.to_owned(),
+                    outdir.to_owned(),
+                )?,
             },
             None => self.launch()?,
         };
@@ -41,26 +54,42 @@ impl App {
     /// Launche parachain and idle until the program receives a `SIGINT`
     fn launch(&mut self) -> Result<()> {
         let config = deserialize_config(&self.0.config)?;
-        lib_pendulum_launch::Launcher::from(config).run()
+        Launcher::from(config).run()
     }
 
     /// Export genesis data to an `outdir` if provided or to the project root
-    fn export_genesis(&self, bin: PathBuf, chain: PathBuf, outdir: Option<PathBuf>) -> Result<()> {
+    fn export_genesis(
+        &self,
+        bin: PathBuf,
+        chain: PathBuf,
+        name: Option<String>,
+        outdir: Option<PathBuf>,
+    ) -> Result<()> {
         let bin = path_to_str(&bin)?;
         let chain = path_to_str(&chain)?;
-        let outdir = {
-            // Use project root if no `outdir` is provided
-            let path = outdir.unwrap_or(locate_project_root()?);
-            path_to_str(&path)?
-        };
+        let name = name.unwrap_or_else(|| "local-chain".to_string());
+        let outdir = path_to_str(&outdir.unwrap_or(util::locate_project_root()?))?;
 
-        lib_pendulum_launch::export_genesis(bin, chain, outdir)?;
-        Ok(())
+        sub_command::export_genesis(bin, chain, name, outdir)
+    }
+
+    /// Generate specs from a collator
+    fn generate_specs(
+        &self,
+        bin: PathBuf,
+        name: Option<String>,
+        outdir: Option<PathBuf>,
+    ) -> Result<()> {
+        let bin = path_to_str(&bin)?;
+        let name = name.unwrap_or_else(|| "local-chain".to_string());
+        let outdir = path_to_str(&outdir.unwrap_or(util::locate_project_root()?))?;
+
+        sub_command::generate_specs(bin, name, outdir)
     }
 }
 
 /// Attempts to deserialize a config, searching for a default config if none is provided
-fn deserialize_config(path: &Option<PathBuf>) -> Result<lib_pendulum_launch::Config> {
+fn deserialize_config(path: &Option<PathBuf>) -> Result<Config> {
     let path = {
         let path = match &path {
             Some(path) => Some(path.to_owned()),
@@ -73,11 +102,11 @@ fn deserialize_config(path: &Option<PathBuf>) -> Result<lib_pendulum_launch::Con
         }
     };
 
-    lib_pendulum_launch::Config::deserialize(path)
+    Config::deserialize(path)
 }
 
 fn search_default_config() -> Result<Option<PathBuf>> {
-    for entry in fs::read_dir(locate_project_root()?)? {
+    for entry in fs::read_dir(util::locate_project_root()?)? {
         if let Some(path) = try_get_config_entry(entry)? {
             return Ok(Some(path));
         }

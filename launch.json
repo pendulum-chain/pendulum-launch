@@ -19,7 +19,9 @@
         "bin": "./bin/pendulum-collator",
         "chain": "./specs/rococo-local-parachain-raw.json",
         "args": [
-          "--force-authoring"
+          "--force-authoring",
+          "--enable-offchain-indexing",
+          "true"
         ],
         "port": 30344,
         "ws_port": 8844,

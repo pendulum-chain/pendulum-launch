@@ -11,7 +11,7 @@ pub enum Error {
     #[error("Must provide valid path")]
     InvalidPath,
     #[error("Process failed: {0:?}")]
-    ProcessFailed(Vec<u8>),
+    ProcessFailed(String),
     #[error("{0}")]
     Io(#[from] io::Error),
     #[error("{0}")]

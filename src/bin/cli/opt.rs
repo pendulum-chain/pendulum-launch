@@ -9,6 +9,8 @@ pub enum Command {
         collator_bin: PathBuf,
         #[structopt(name = "chain", parse(from_os_str), about = "Collator spec")]
         collator_spec: PathBuf,
+        #[structopt(short, long, about = "File prefix")]
+        name: Option<String>,
         #[structopt(short, long, parse(from_os_str), about = "Alternate output directory")]
         outdir: Option<PathBuf>,
     },
@@ -16,6 +18,8 @@ pub enum Command {
     GenerateSpecs {
         #[structopt(name = "bin", parse(from_os_str), about = "Collator binary")]
         collator_bin: PathBuf,
+        #[structopt(short, long, about = "File prefix")]
+        name: Option<String>,
         #[structopt(short, long, parse(from_os_str), about = "Alternate output directory")]
         outdir: Option<PathBuf>,
     },
