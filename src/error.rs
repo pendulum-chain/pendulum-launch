@@ -1,15 +1,25 @@
 use serde::{de, ser};
-use std::{error, fmt, io, result};
+use std::{error, fmt, io, result, string};
 use thiserror::Error;
 
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug, Error)]
 pub enum Error {
+    #[error("Must provide a config")]
+    NoConfig,
+    #[error("Must provide valid path")]
+    InvalidPath,
+    #[error("Process failed: {0:?}")]
+    ProcessFailed(String),
     #[error("{0}")]
     Io(#[from] io::Error),
     #[error("{0}")]
     Signal(#[from] ctrlc::Error),
+    #[error("{0}")]
+    ParseJson(#[from] json::Error),
+    #[error("{0}")]
+    FromUtf8(#[from] string::FromUtf8Error),
     #[error("{0}")]
     Serde(#[from] SerdeError),
     #[error("{0}")]
