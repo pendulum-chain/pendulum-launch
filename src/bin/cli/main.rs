@@ -5,12 +5,16 @@ use structopt::StructOpt;
 mod app;
 mod error;
 mod opt;
+mod util;
 
 use app::App;
 use error::{Error, Result};
 use opt::Options;
+pub(crate) use util::locate_project_root;
 
 fn main() -> Result<()> {
+    // println!("{:?}", locate_project_root()?.into_os_string());
+    // Ok(())
     let mut app = App::from_args();
     app.run()
 

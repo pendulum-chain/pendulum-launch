@@ -1,36 +1,16 @@
-use crate::{opt::Command, Error, Options, Result};
-use lib_pendulum_launch::{
-    node::{Collator, CollatorRelay, Node, Validator},
-    Config, Launcher,
-};
+use crate::{opt::Command, util::locate_project_root, Error, Options, Result};
+use lib_pendulum_launch::{Config, Launcher};
 use std::{
     fs::{self, DirEntry},
     io,
-    path::PathBuf,
-    process,
+    path::{Path, PathBuf},
+    process::{self, Output},
 };
 use structopt::StructOpt;
 
 pub struct App(Options);
-// {
-//     launcher: Option<Launcher>,
-// collator_bin: Option<PathBuf>,
-// collator_spec: Option<PathBuf>,
-// }
 
 impl App {
-    // pub fn new(
-    //     launcher: Option<Launcher>,
-    //     // collator_bin: Option<PathBuf>,
-    //     // collator_spec: Option<PathBuf>,
-    // ) -> Self {
-    //     Self {
-    //         launcher,
-    //         // collator_bin,
-    //         // collator_spec,
-    //     }
-    // }
-
     pub fn new(options: Options) -> Self {
         Self(options)
     }
@@ -46,7 +26,11 @@ impl App {
                     collator_bin,
                     collator_spec,
                     outdir,
-                } => self.export_genesis(collator_bin, collator_spec, outdir)?,
+                } => self.export_genesis(
+                    collator_bin.to_owned(),
+                    collator_spec.to_owned(),
+                    outdir.to_owned(),
+                )?,
                 Command::GenerateSpecs { .. } => eprintln!("Unimplemented"),
             },
             None => self.launch()?,
@@ -54,10 +38,6 @@ impl App {
 
         Ok(())
     }
-
-    // pub fn from_args() -> Result<Self> {
-    //     Self::try_from(Options::from_args())
-    // }
 
     fn launch(&mut self) -> Result<()> {
         let config = match &self.0.config {
@@ -78,94 +58,51 @@ impl App {
                 Ok(()) => Ok(()),
                 Err(err) => Err(Error::Lib(err)),
             },
-            None => Err(Error::InvalidBinary),
+            None => Err(Error::InvalidPath),
         }
     }
 
-    fn export_genesis(
-        &self,
-        bin: &PathBuf,
-        chain: &PathBuf,
-        outdir: &Option<PathBuf>,
-    ) -> Result<()> {
-        let collator_bin = match bin.to_str() {
-            Some(path) => path,
-            None => return Err(Error::InvalidBinary),
+    /// Export genesis data to an `outdir` if provided or to the project root
+    fn export_genesis(&self, bin: PathBuf, chain: PathBuf, outdir: Option<PathBuf>) -> Result<()> {
+        // Attempts to parse a PathBuf from a &str
+        let path_to_str = |path: PathBuf| match path.to_str() {
+            Some(path) => Ok(path.to_owned()),
+            None => Err(Error::InvalidPath),
         };
 
-        let collator_spec = match chain.to_str() {
-            Some(path) => path,
-            None => return Err(Error::InvalidDirectory),
+        let bin = path_to_str(bin)?;
+        let chain = path_to_str(chain)?;
+        let outdir = {
+            // Use project root if no `outdir` is provided
+            let path = outdir.unwrap_or(locate_project_root()?);
+            path_to_str(path)?
         };
 
-        let genesis_outdir = match &outdir {
-            Some(dir) => match dir.to_str() {
-                Some(path) => path,
-                None => return Err(Error::InvalidDirectory),
-            },
-            None => ".",
+        // Generates genesis data, given a name
+        let generate = |name: &str| -> Result<()> {
+            let cmd = format!("export-genesis-{name}");
+            let output = process::Command::new(&bin)
+                .args([&cmd, "--chain", &chain])
+                .output()?;
+
+            if !output.status.success() {
+                return Err(Error::ProcessFailed(output.stderr));
+            }
+
+            let data = String::from_utf8(output.stdout)?;
+            let out_file = format!("{outdir}/chain-{name}");
+            fs::write(out_file, data)?;
+
+            Ok(())
         };
 
-        process::Command::new(collator_bin)
-            .args([
-                "export-genesis-wasm",
-                "--chain",
-                collator_spec,
-                // ">",
-                // format!("{genesis_outdir}/chain-wasm").as_str(),
-            ])
-            .status()?;
-
-        process::Command::new(collator_bin)
-            .args([
-                "export-genesis-state",
-                "--chain",
-                collator_spec,
-                // ">",
-                // format!("{genesis_outdir}/chain-state").as_str(),
-            ])
-            .status()?;
-
-        Ok(())
+        // Generate genesis-wasm and genesis-state
+        ["wasm", "state"]
+            .into_iter()
+            .map(|name| generate(name))
+            .collect()
     }
-
-    //     fn validate(&self, command: Command) -> Result<()> {
-    //         match command {
-    //             Command::Launch => match self.launcher {
-    //                 Some(_) => Ok(()),
-    //                 None => Err(Error::LaunchCommand),
-    //             },
-    //             Command::ExportGenesis | Command::ExportSpecs => {
-    //                 match self.collator_bin.is_some() && self.collator_spec.is_some() {
-    //                     true => Ok(()),
-    //                     false => Err(Error::GenCommand),
-    //                 }
-    //             }
-    //         }
-    //     }
 }
-
-// impl TryFrom<Options> for App {
-//     type Error = Error;
-
-//     fn try_from(options: Options) -> Result<Self> {
-//         let config = match options.config {
-//             Some(config) => Some(config),
-//             None => search_default_config()?,
-//         };
-
-//         let launcher = match config {
-//             Some(path) => {
-//                 let config = deserialize_config(path)?;
-//                 Some(Launcher::from(config))
-//             }
-//             None => None,
-//         };
-
-//         // Ok(Self::new(launcher, options.collator_bin, options.collator_spec))
-//         Ok(Self::new(launcher))
-//     }
-// }
 
 fn deserialize_config(path: PathBuf) -> Result<Config> {
     match Config::deserialize(path) {
