@@ -46,18 +46,12 @@ impl App {
 
     /// Export genesis data to an `outdir` if provided or to the project root
     fn export_genesis(&self, bin: PathBuf, chain: PathBuf, outdir: Option<PathBuf>) -> Result<()> {
-        // Attempts to parse a PathBuf from a &str
-        let path_to_str = |path: PathBuf| match path.to_str() {
-            Some(path) => Ok(path.to_owned()),
-            None => Err(Error::InvalidPath),
-        };
-
-        let bin = path_to_str(bin)?;
-        let chain = path_to_str(chain)?;
+        let bin = path_to_str(&bin)?;
+        let chain = path_to_str(&chain)?;
         let outdir = {
             // Use project root if no `outdir` is provided
             let path = outdir.unwrap_or(locate_project_root()?);
-            path_to_str(path)?
+            path_to_str(&path)?
         };
 
         lib_pendulum_launch::export_genesis(bin, chain, outdir)?;
@@ -83,7 +77,7 @@ fn deserialize_config(path: &Option<PathBuf>) -> Result<lib_pendulum_launch::Con
 }
 
 fn search_default_config() -> Result<Option<PathBuf>> {
-    for entry in fs::read_dir(".")? {
+    for entry in fs::read_dir(locate_project_root()?)? {
         if let Some(path) = try_get_config_entry(entry)? {
             return Ok(Some(path));
         }
@@ -94,12 +88,16 @@ fn search_default_config() -> Result<Option<PathBuf>> {
 
 fn try_get_config_entry(entry: io::Result<DirEntry>) -> Result<Option<PathBuf>> {
     let path = entry?.path();
-    if path.is_file() {
-        let path_name = path.as_os_str();
-        if path_name == "launch.json" {
-            return Ok(Some(path));
-        }
+    match path.is_file() && path_to_str(&path)?.contains("launch.json") {
+        true => Ok(Some(path)),
+        false => Ok(None),
     }
+}
 
-    Ok(None)
+// Attempt to parse a PathBuf from a &str
+fn path_to_str<'a>(path: &PathBuf) -> Result<String> {
+    match path.to_str() {
+        Some(path) => Ok(path.to_string()),
+        None => Err(Error::InvalidPath),
+    }
 }
