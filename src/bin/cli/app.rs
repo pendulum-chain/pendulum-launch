@@ -1,10 +1,9 @@
-use crate::{opt::Command, util::locate_project_root, Error, Options, Result};
-use lib_pendulum_launch::{Config, Launcher};
+use crate::{opt::Command, util::locate_project_root, Options};
+use lib_pendulum_launch::error::{Error, Result};
 use std::{
     fs::{self, DirEntry},
     io,
-    path::{Path, PathBuf},
-    process::{self, Output},
+    path::PathBuf,
 };
 use structopt::StructOpt;
 
@@ -48,16 +47,13 @@ impl App {
         let launcher = match config {
             Some(path) => {
                 let config = deserialize_config(path)?;
-                Some(Launcher::from(config))
+                Some(lib_pendulum_launch::Launcher::from(config))
             }
             None => None,
         };
 
         match launcher {
-            Some(mut launcher) => match launcher.run() {
-                Ok(()) => Ok(()),
-                Err(err) => Err(Error::Lib(err)),
-            },
+            Some(mut launcher) => launcher.run(),
             None => Err(Error::InvalidPath),
         }
     }
@@ -78,36 +74,13 @@ impl App {
             path_to_str(path)?
         };
 
-        // Generates genesis data, given a name
-        let generate = |name: &str| -> Result<()> {
-            let cmd = format!("export-genesis-{name}");
-            let output = process::Command::new(&bin)
-                .args([&cmd, "--chain", &chain])
-                .output()?;
-
-            if !output.status.success() {
-                return Err(Error::ProcessFailed(output.stderr));
-            }
-
-            let data = String::from_utf8(output.stdout)?;
-            let out_file = format!("{outdir}/chain-{name}");
-            fs::write(out_file, data)?;
-
-            Ok(())
-        };
-
-        // Generate genesis-wasm and genesis-state
-        ["wasm", "state"]
-            .into_iter()
-            .try_for_each(|name| generate(name))
+        lib_pendulum_launch::export_genesis(bin, chain, outdir)?;
+        Ok(())
     }
 }
 
-fn deserialize_config(path: PathBuf) -> Result<Config> {
-    match Config::deserialize(path) {
-        Ok(config) => Ok(config),
-        Err(err) => Err(Error::Lib(err)),
-    }
+fn deserialize_config(path: PathBuf) -> Result<lib_pendulum_launch::Config> {
+    lib_pendulum_launch::Config::deserialize(path)
 }
 
 fn search_default_config() -> Result<Option<PathBuf>> {

@@ -1,11 +1,10 @@
-#[allow(dead_code, unused)]
+// #[allow(dead_code, unused)]
 mod app;
-mod error;
 mod opt;
 mod util;
 
 use app::App;
-use error::{Error, Result};
+use lib_pendulum_launch::error::{Error, Result};
 use opt::Options;
 
 fn main() -> Result<()> {
