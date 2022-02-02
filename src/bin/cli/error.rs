@@ -21,6 +21,3 @@ pub enum Error {
     #[error("{0}")]
     Other(#[from] Box<dyn error::Error>),
 }
-
-// SAFETY: Errors are not shared between threads in the client
-unsafe impl Sync for Error {}

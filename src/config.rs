@@ -34,7 +34,7 @@ impl Config {
 
     pub fn deserialize(path: PathBuf) -> Result<Self> {
         let raw_config = &fs::read(path)?;
-        match serde_json::from_slice(&raw_config) {
+        match serde_json::from_slice(raw_config) {
             Ok(config) => Ok(config),
             Err(err) => Err(Error::Serde(SerdeError::Deserialize(err.to_string()))),
         }

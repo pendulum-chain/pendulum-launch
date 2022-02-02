@@ -4,7 +4,7 @@ use std::{env, process};
 
 // Aquires the rust project root where the binary is being executed
 pub fn locate_project_root() -> Result<PathBuf> {
-    let cargo = env::var("CARGO").unwrap_or("cargo".to_owned());
+    let cargo = env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned());
     let output = process::Command::new(cargo)
         .arg("locate-project")
         .output()?;
@@ -15,10 +15,11 @@ pub fn locate_project_root() -> Result<PathBuf> {
 
     let output = String::from_utf8(output.stdout)?;
     let parsed = json::parse(&output)?;
+
     // Gets project root, dropping manifest node
     let root = parsed["root"]
         .as_str()
-        .ok_or(Error::ProcessFailed(b"no project root".to_vec()))?
+        .ok_or_else(|| Error::ProcessFailed(b"no project root".to_vec()))?
         .split('/')
         .skip(1)
         .fold(String::new(), |acc, entry| match entry {

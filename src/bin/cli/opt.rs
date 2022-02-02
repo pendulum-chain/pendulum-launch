@@ -1,6 +1,4 @@
-use crate::{Error, Result};
-use lib_pendulum_launch::{Config, Launcher};
-use std::{path::PathBuf, process};
+use std::path::PathBuf;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]

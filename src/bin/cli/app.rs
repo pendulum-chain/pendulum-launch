@@ -99,8 +99,7 @@ impl App {
         // Generate genesis-wasm and genesis-state
         ["wasm", "state"]
             .into_iter()
-            .map(|name| generate(name))
-            .collect()
+            .try_for_each(|name| generate(name))
     }
 }
 

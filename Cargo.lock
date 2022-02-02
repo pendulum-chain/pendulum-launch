@@ -141,7 +141,6 @@ version = "0.1.0"
 dependencies = [
  "ctrlc",
  "json",
- "lazy_static",
  "serde",
  "serde_json",
  "signal-hook",
