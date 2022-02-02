@@ -6,7 +6,7 @@ use std::{fs, process};
 pub fn export_genesis(bin: String, chain: String, name: String, outdir: String) -> Result<()> {
     // Generates genesis data, given a name
     let generate = |suffix: &str| -> Result<()> {
-        let cmd = format!("export-genesis-{suffix}");
+        let cmd = format!("export-genesis-{}", suffix);
         let output = process::Command::new(&bin)
             .args([&cmd, "--chain", &chain])
             .output()?;
@@ -14,7 +14,7 @@ pub fn export_genesis(bin: String, chain: String, name: String, outdir: String) 
         util::ensure_success(&output)?;
 
         let data = String::from_utf8(output.stdout)?;
-        let out_file = format!("{outdir}/{name}-{suffix}");
+        let out_file = format!("{}/{}-{}", outdir, name, suffix);
         fs::write(out_file, data)?;
 
         Ok(())
@@ -36,7 +36,7 @@ pub fn generate_specs(bin: String, name: String, outdir: String) -> Result<()> {
     util::ensure_success(&output)?;
 
     let data = String::from_utf8(output.stdout)?;
-    let out_file = format!("{outdir}/{name}-plain.json");
+    let out_file = format!("{}/{}-plain.json", outdir, name);
     fs::write(&out_file, data)?;
 
     // Generate raw
@@ -53,7 +53,7 @@ pub fn generate_specs(bin: String, name: String, outdir: String) -> Result<()> {
     util::ensure_success(&output)?;
 
     let data = String::from_utf8(output.stdout)?;
-    let out_file = format!("{outdir}/{name}-raw.json");
+    let out_file = format!("{}/{}-raw.json", outdir, name);
     fs::write(out_file, data)?;
 
     Ok(())

@@ -23,7 +23,7 @@ pub fn locate_project_root() -> Result<PathBuf> {
         .skip(1)
         .fold(String::new(), |acc, entry| match entry {
             "Cargo.toml" => acc,
-            _ => format!("{acc}/{entry}"),
+            _ => format!("{}/{}", acc, entry),
         });
 
     Ok(PathBuf::from(root))

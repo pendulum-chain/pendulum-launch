@@ -36,12 +36,12 @@ pub enum SerdeError {
 
 impl ser::Error for SerdeError {
     fn custom<T: fmt::Display>(msg: T) -> Self {
-        SerdeError::Serialize(format!("Failed to serialize: {msg}"))
+        SerdeError::Serialize(format!("Failed to serialize: {}", msg))
     }
 }
 
 impl de::Error for SerdeError {
     fn custom<T: fmt::Display>(msg: T) -> Self {
-        SerdeError::Deserialize(format!("Failed to deserialize: {msg}"))
+        SerdeError::Deserialize(format!("Failed to deserialize: {}", msg))
     }
 }
