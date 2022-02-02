@@ -3,7 +3,7 @@ use lib_pendulum_launch::error::{Error, Result};
 use std::{
     fs::{self, DirEntry},
     io,
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 use structopt::StructOpt;
 
@@ -95,7 +95,7 @@ fn try_get_config_entry(entry: io::Result<DirEntry>) -> Result<Option<PathBuf>> 
 }
 
 // Attempt to parse a PathBuf from a &str
-fn path_to_str<'a>(path: &PathBuf) -> Result<String> {
+fn path_to_str(path: &Path) -> Result<String> {
     match path.to_str() {
         Some(path) => Ok(path.to_string()),
         None => Err(Error::InvalidPath),
