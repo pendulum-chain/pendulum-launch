@@ -6,6 +6,8 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug, Error)]
 pub enum Error {
+    #[error("Must provide a config")]
+    NoConfig,
     #[error("Must provide valid path")]
     InvalidPath,
     #[error("Process failed: {0:?}")]

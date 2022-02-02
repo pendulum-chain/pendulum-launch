@@ -38,24 +38,10 @@ impl App {
         Ok(())
     }
 
+    /// Launche parachain and idle until the program receives a `SIGINT`
     fn launch(&mut self) -> Result<()> {
-        let config = match &self.0.config {
-            Some(config) => Some(config.to_owned()),
-            None => search_default_config()?,
-        };
-
-        let launcher = match config {
-            Some(path) => {
-                let config = deserialize_config(path)?;
-                Some(lib_pendulum_launch::Launcher::from(config))
-            }
-            None => None,
-        };
-
-        match launcher {
-            Some(mut launcher) => launcher.run(),
-            None => Err(Error::InvalidPath),
-        }
+        let config = deserialize_config(&self.0.config)?;
+        lib_pendulum_launch::Launcher::from(config).run()
     }
 
     /// Export genesis data to an `outdir` if provided or to the project root
@@ -79,7 +65,20 @@ impl App {
     }
 }
 
-fn deserialize_config(path: PathBuf) -> Result<lib_pendulum_launch::Config> {
+/// Attempts to deserialize a config, searching for a default config if none is provided
+fn deserialize_config(path: &Option<PathBuf>) -> Result<lib_pendulum_launch::Config> {
+    let path = {
+        let path = match &path {
+            Some(path) => Some(path.to_owned()),
+            None => search_default_config()?,
+        };
+
+        match path {
+            Some(path) => path,
+            None => return Err(Error::NoConfig),
+        }
+    };
+
     lib_pendulum_launch::Config::deserialize(path)
 }
 
@@ -97,7 +96,7 @@ fn try_get_config_entry(entry: io::Result<DirEntry>) -> Result<Option<PathBuf>> 
     let path = entry?.path();
     if path.is_file() {
         let path_name = path.as_os_str();
-        if path_name == "launch.toml" || path_name == "launch.json" {
+        if path_name == "launch.json" {
             return Ok(Some(path));
         }
     }
