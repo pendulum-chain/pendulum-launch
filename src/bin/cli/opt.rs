@@ -20,6 +20,8 @@ pub enum Command {
         collator_bin: PathBuf,
         #[structopt(short, long, about = "File prefix")]
         name: Option<String>,
+        #[structopt(short = "i", long, about = "Para id")]
+        para_id: Option<u32>,
         #[structopt(short, long, parse(from_os_str), about = "Alternate output directory")]
         outdir: Option<PathBuf>,
     },

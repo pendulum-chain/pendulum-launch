@@ -38,10 +38,12 @@ impl App {
                 Command::GenerateSpecs {
                     collator_bin,
                     name,
+                    para_id,
                     outdir,
                 } => self.generate_specs(
                     collator_bin.to_owned(),
                     name.to_owned(),
+                    para_id.to_owned(),
                     outdir.to_owned(),
                 )?,
             },
@@ -78,13 +80,15 @@ impl App {
         &self,
         bin: PathBuf,
         name: Option<String>,
+        para_id: Option<u32>,
         outdir: Option<PathBuf>,
     ) -> Result<()> {
         let bin = path_to_str(&bin)?;
         let name = name.unwrap_or_else(|| "local-chain".to_string());
+        let para_id = para_id.unwrap_or_else(|| 2000);
         let outdir = path_to_str(&outdir.unwrap_or(util::locate_project_root()?))?;
 
-        sub_command::generate_specs(bin, name, outdir)
+        sub_command::generate_specs(bin, name, para_id, outdir)
     }
 }
 

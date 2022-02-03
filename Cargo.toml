@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "pendulum_launch"
+name = "pendulum-launch"
 path = "src/bin/cli/main.rs"
 
 [lib]
