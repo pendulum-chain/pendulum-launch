@@ -10,8 +10,10 @@ pub enum Error {
     NoConfig,
     #[error("Must provide valid path")]
     InvalidPath,
-    #[error("Process failed: {0:?}")]
+    #[error("Process failed: {0}")]
     ProcessFailed(String),
+    #[error("Invalid json value: {0}")]
+    InvalidJsonValue(String),
     #[error("{0}")]
     Io(#[from] io::Error),
     #[error("{0}")]
