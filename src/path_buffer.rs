@@ -2,7 +2,12 @@ use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use std::{ffi::OsStr, fmt, path::PathBuf, rc::Rc};
+use std::{
+    ffi::OsStr,
+    fmt,
+    path::{Path, PathBuf},
+    rc::Rc,
+};
 
 /// A wrapper around a reference counted PathBuf for extended implementation
 #[derive(Debug)]
@@ -16,11 +21,21 @@ impl PathBuffer {
     pub fn as_os_str(&self) -> &OsStr {
         self.0.as_os_str()
     }
+
+    pub fn join<P: AsRef<Path>>(&self, path: P) -> Self {
+        Self::from(self.0.join(path))
+    }
 }
 
 impl From<&str> for PathBuffer {
     fn from(value: &str) -> Self {
         PathBuffer(Rc::new(PathBuf::from(value)))
+    }
+}
+
+impl From<PathBuf> for PathBuffer {
+    fn from(path: PathBuf) -> Self {
+        PathBuffer(Rc::new(path))
     }
 }
 

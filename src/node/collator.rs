@@ -1,4 +1,5 @@
 use super::Node;
+use crate::error::Result;
 use crate::{PathBuffer, Task};
 use serde::{Deserialize, Serialize};
 
@@ -34,23 +35,30 @@ impl Collator {
         Self { inner, relay }
     }
 
-    pub fn create_task(&self) -> Task {
-        let mut command = self.inner.create_command();
-        command.arg("--collator");
-        command.arg("--");
-        command.arg("--execution");
-        command.arg("wasm");
-        command.arg("--chain");
-        command.arg(self.relay.chain.as_os_str());
-        command.arg("--port");
-        command.arg(self.relay.port.to_string());
-        command.arg("--ws-port");
-        command.arg(self.relay.ws_port.to_string());
+    pub fn create_task(&self, quiet: bool, log_dir: &Option<PathBuffer>) -> Result<Task> {
+        let mut command = self.inner.create_command(quiet);
+        command
+            .arg("--collator")
+            .arg("--")
+            .arg("--execution")
+            .arg("wasm")
+            .arg("--chain")
+            .arg(self.relay.chain.as_os_str())
+            .arg("--port")
+            .arg(self.relay.port.to_string())
+            .arg("--ws-port")
+            .arg(self.relay.ws_port.to_string());
+
         if let Some(rpc_port) = self.relay.rpc_port {
             command.arg("--rpc-port");
             command.arg(rpc_port.to_string());
         };
 
-        Task::new(command)
+        let log_file = match log_dir {
+            Some(dir) => Some(dir.join(self.inner.get_log_name()?)),
+            None => None,
+        };
+
+        Ok(Task::new(command, quiet, log_file))
     }
 }

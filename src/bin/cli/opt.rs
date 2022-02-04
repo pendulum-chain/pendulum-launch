@@ -35,6 +35,10 @@ pub struct Options {
     pub debug: Option<bool>,
     #[structopt(short, long, parse(from_os_str), about = "Alternate config path")]
     pub config: Option<PathBuf>,
+    #[structopt(short, long, about = "Silence output")]
+    pub quiet: bool,
+    #[structopt(short, long, parse(from_os_str), about = "Directoy to log node data")]
+    pub log: Option<PathBuf>,
     #[structopt(subcommand)]
     pub cmd: Option<Command>,
 }

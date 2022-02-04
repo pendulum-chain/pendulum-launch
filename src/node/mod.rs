@@ -4,9 +4,10 @@ mod validator;
 pub use collator::{Collator, CollatorRelay};
 pub use validator::Validator;
 
-use crate::PathBuffer;
+use crate::error::Error;
+use crate::{error::Result, util, PathBuffer};
 use serde::{Deserialize, Serialize};
-use std::process;
+use std::process::{self, Stdio};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Node {
@@ -45,19 +46,35 @@ impl Node {
         }
     }
 
-    pub fn create_command(&self) -> process::Command {
+    pub fn create_command(&self, quiet: bool) -> process::Command {
+        let io_mode = if quiet { Stdio::null } else { Stdio::piped };
         let mut command = process::Command::new(self.bin.as_ref());
-        command.args(self.args.clone());
-        command.arg("--chain");
-        command.arg(self.chain.as_os_str());
-        command.arg("--port");
-        command.arg(self.port.to_string());
-        command.arg("--ws-port");
-        command.arg(self.ws_port.to_string());
+        command
+            .stdout(io_mode())
+            .stderr(io_mode())
+            .args(self.args.to_owned())
+            .arg("--chain")
+            .arg(self.chain.as_os_str())
+            .arg("--port")
+            .arg(self.port.to_string())
+            .arg("--ws-port")
+            .arg(&self.ws_port.to_string());
+
         if let Some(rpc_port) = self.rpc_port {
             command.arg(format!("--rpc-port {}", rpc_port));
         };
 
         command
+    }
+
+    pub fn get_log_name(&self) -> Result<String> {
+        let bin_path = util::path_to_str(self.bin.as_ref())?;
+        let bin_name = match bin_path.split('/').last() {
+            Some(bin) => bin,
+            None => return Err(Error::InvalidPath),
+        };
+        let ws_port = self.ws_port;
+
+        Ok(format!("{}-{}.log", bin_name, ws_port))
     }
 }

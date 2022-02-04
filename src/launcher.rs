@@ -1,5 +1,6 @@
-use crate::{error::Result, Config, Task};
+use crate::{error::Result, Config, PathBuffer, Task};
 use std::{
+    path::PathBuf,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
@@ -16,14 +17,17 @@ pub struct Launcher {
 }
 
 impl<'a> Launcher {
-    pub fn new(config: Config) -> Self {
-        let tasks = config.generate_tasks();
+    pub fn new(config: Config, quiet: bool, log_dir: Option<PathBuf>) -> Result<Self> {
+        let log_dir = match log_dir {
+            Some(path) => Some(PathBuffer::from(path)),
+            None => None,
+        };
 
-        Self {
-            tasks,
+        Ok(Self {
+            tasks: config.generate_tasks(quiet, log_dir)?,
             start_time: Instant::now(),
             active: Arc::new(AtomicBool::new(true)),
-        }
+        })
     }
 
     #[inline]
@@ -51,11 +55,5 @@ impl<'a> Launcher {
 
     fn shutdown(&mut self) -> Result<()> {
         self.tasks.iter_mut().try_for_each(|task| task.kill())
-    }
-}
-
-impl From<Config> for Launcher {
-    fn from(config: Config) -> Self {
-        Self::new(config)
     }
 }

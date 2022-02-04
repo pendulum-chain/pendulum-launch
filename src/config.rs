@@ -1,7 +1,7 @@
 use crate::{
     error::{Error, Result, SerdeError},
     node::{Collator, Validator},
-    Task,
+    PathBuffer, Task,
 };
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
@@ -40,9 +40,15 @@ impl Config {
         }
     }
 
-    pub fn generate_tasks(&self) -> Vec<Task> {
-        let validator_tasks = self.validators.iter().map(|v| v.create_task());
-        let collator_tasks = self.collators.iter().map(|c| c.create_task());
+    pub fn generate_tasks(&self, quiet: bool, log_dir: Option<PathBuffer>) -> Result<Vec<Task>> {
+        let validator_tasks = self
+            .validators
+            .iter()
+            .map(|v| v.create_task(quiet, &log_dir));
+        let collator_tasks = self
+            .collators
+            .iter()
+            .map(|c| c.create_task(quiet, &log_dir));
         validator_tasks.chain(collator_tasks).collect()
     }
 }
