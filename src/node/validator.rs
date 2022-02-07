@@ -20,6 +20,6 @@ impl Validator {
             None => None,
         };
 
-        Ok(Task::new(command, quiet, log_file))
+        Ok(Task::new(command, log_file))
     }
 }

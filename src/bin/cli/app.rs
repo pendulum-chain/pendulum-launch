@@ -1,12 +1,12 @@
 use crate::{opt::Command, Options};
 use lib_pendulum_launch::{
     error::{Error, Result},
-    sub_command, util, Config, Launcher, PathBuffer,
+    sub_command, util, Config, Launcher,
 };
 use std::{
     fs::{self, DirEntry},
     io,
-    path::{Path, PathBuf},
+    path::PathBuf,
 };
 use structopt::StructOpt;
 
