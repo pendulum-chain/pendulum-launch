@@ -1,5 +1,6 @@
 use super::Node;
-use crate::error::Result;
+use crate::error::{Error, Result};
+use crate::util::path_to_str;
 use crate::{PathBuffer, Task};
 use serde::{Deserialize, Serialize};
 
@@ -35,30 +36,30 @@ impl Collator {
         Self { inner, relay }
     }
 
-    pub fn create_task(&self, quiet: bool, log_dir: &Option<PathBuffer>) -> Result<Task> {
-        let mut command = self.inner.create_command(quiet);
-        command
-            .arg("--collator")
-            .arg("--")
-            .arg("--execution")
-            .arg("wasm")
-            .arg("--chain")
-            .arg(self.relay.chain.as_os_str())
-            .arg("--port")
-            .arg(self.relay.port.to_string())
-            .arg("--ws-port")
-            .arg(self.relay.ws_port.to_string());
+    pub fn create_task(&self, log_dir: &Option<PathBuffer>) -> Result<Task> {
+        let chain = match self.relay.chain.to_str() {
+            Some(chain) => chain,
+            None => return Err(Error::InvalidPath),
+        };
+
+        let mut args = vec![
+            "--collator".to_owned(),
+            "--".to_owned(),
+            "--execution".to_owned(),
+            "wasm".to_owned(),
+            "--chain".to_owned(),
+            chain.to_owned(),
+            "--port".to_owned(),
+            self.relay.port.to_string(),
+            "--ws-port".to_owned(),
+            self.relay.ws_port.to_string(),
+        ];
 
         if let Some(rpc_port) = self.relay.rpc_port {
-            command.arg("--rpc-port");
-            command.arg(rpc_port.to_string());
+            args.push("--rpc-port".to_owned());
+            args.push(rpc_port.to_string());
         };
 
-        let log_file = match log_dir {
-            Some(dir) => Some(dir.join(self.inner.get_log_name()?)),
-            None => None,
-        };
-
-        Ok(Task::new(command, log_file))
+        Ok(Task::new(self.inner.create_command(args, log_dir)?))
     }
 }

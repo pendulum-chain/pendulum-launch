@@ -17,11 +17,10 @@ pub struct Launcher {
 }
 
 impl<'a> Launcher {
-    pub fn new(config: Config, quiet: bool, log_dir: Option<PathBuf>) -> Result<Self> {
-        let log_dir = log_dir.map(PathBuffer::from);
-
+    #[inline]
+    pub fn new(config: Config, log_dir: Option<PathBuf>) -> Result<Self> {
         Ok(Self {
-            tasks: config.generate_tasks(quiet, log_dir)?,
+            tasks: config.generate_tasks(log_dir.map(PathBuffer::from))?,
             start_time: Instant::now(),
             active: Arc::new(AtomicBool::new(true)),
         })
@@ -52,9 +51,5 @@ impl<'a> Launcher {
 
     fn shutdown(&mut self) -> Result<()> {
         self.tasks.iter_mut().try_for_each(|task| task.kill())
-    }
-
-    fn log(&mut self) -> Result<()> {
-        self.tasks.iter_mut().try_for_each(|task| task.log())
     }
 }

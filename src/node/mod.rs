@@ -7,6 +7,7 @@ pub use validator::Validator;
 use crate::error::Error;
 use crate::{error::Result, util, PathBuffer};
 use serde::{Deserialize, Serialize};
+use std::fs::File;
 use std::process::{self, Stdio};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -46,25 +47,37 @@ impl Node {
         }
     }
 
-    pub fn create_command(&self, quiet: bool) -> process::Command {
-        let io_mode = if quiet { Stdio::null } else { Stdio::piped };
+    pub fn create_command(
+        &self,
+        args: Vec<String>,
+        log_dir: &Option<PathBuffer>,
+    ) -> Result<process::Command> {
+        let log = match log_dir {
+            Some(path) => {
+                let path = path.join(self.get_log_name()?);
+                let file = File::create(path.as_ref())?;
+                Stdio::from(file)
+            }
+            None => Stdio::null(),
+        };
+
         let mut command = process::Command::new(self.bin.as_ref());
         command
-            .stdout(io_mode())
-            .stderr(io_mode())
+            .stdout(log)
             .args(self.args.to_owned())
             .arg("--chain")
             .arg(self.chain.as_os_str())
             .arg("--port")
             .arg(self.port.to_string())
             .arg("--ws-port")
-            .arg(&self.ws_port.to_string());
+            .arg(&self.ws_port.to_string())
+            .args(args);
 
         if let Some(rpc_port) = self.rpc_port {
             command.arg(format!("--rpc-port {}", rpc_port));
         };
 
-        command
+        Ok(command)
     }
 
     pub fn get_log_name(&self) -> Result<String> {

@@ -64,7 +64,7 @@ impl App {
         }
 
         let config = deserialize_config(&self.0.config)?;
-        Launcher::new(config, quiet, log)?.run()
+        Launcher::new(config, log)?.run()
     }
 
     /// Export genesis data to an `outdir` if provided or to the project root

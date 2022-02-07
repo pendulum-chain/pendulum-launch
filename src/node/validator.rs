@@ -11,15 +11,11 @@ impl Validator {
         Self(node)
     }
 
-    pub fn create_task(&self, quiet: bool, log_dir: &Option<PathBuffer>) -> Result<Task> {
-        let mut command = self.0.create_command(quiet);
-        command.arg("--validator");
-
-        let log_file = match log_dir {
-            Some(dir) => Some(dir.join(self.0.get_log_name()?)),
-            None => None,
-        };
-
-        Ok(Task::new(command, log_file))
+    #[inline]
+    pub fn create_task(&self, log_dir: &Option<PathBuffer>) -> Result<Task> {
+        Ok(Task::new(
+            self.0
+                .create_command(vec!["--validator".to_owned()], log_dir)?,
+        ))
     }
 }

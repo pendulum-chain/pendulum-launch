@@ -40,15 +40,9 @@ impl Config {
         }
     }
 
-    pub fn generate_tasks(&self, quiet: bool, log_dir: Option<PathBuffer>) -> Result<Vec<Task>> {
-        let validator_tasks = self
-            .validators
-            .iter()
-            .map(|v| v.create_task(quiet, &log_dir));
-        let collator_tasks = self
-            .collators
-            .iter()
-            .map(|c| c.create_task(quiet, &log_dir));
+    pub fn generate_tasks(&self, log_dir: Option<PathBuffer>) -> Result<Vec<Task>> {
+        let validator_tasks = self.validators.iter().map(|v| v.create_task(&log_dir));
+        let collator_tasks = self.collators.iter().map(|c| c.create_task(&log_dir));
         validator_tasks.chain(collator_tasks).collect()
     }
 }
