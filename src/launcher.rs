@@ -18,7 +18,7 @@ pub struct Launcher {
 
 impl<'a> Launcher {
     #[inline]
-    pub fn new(config: Config, log_dir: Option<PathBuf>) -> Result<Self> {
+    pub fn new(config: &mut Config, log_dir: Option<PathBuf>) -> Result<Self> {
         Ok(Self {
             tasks: config.generate_tasks(log_dir.map(PathBuffer::from))?,
             start_time: Instant::now(),

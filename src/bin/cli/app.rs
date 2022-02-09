@@ -63,8 +63,8 @@ impl App {
             ));
         }
 
-        let config = deserialize_config(&self.0.config)?;
-        Launcher::new(config, log)?.run()
+        let mut config = deserialize_config(&self.0.config)?;
+        Launcher::new(&mut config, log)?.run()
     }
 
     /// Export genesis data to an `outdir` if provided or to the project root
