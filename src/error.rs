@@ -10,6 +10,8 @@ pub enum Error {
     NoConfig,
     #[error("Must provide valid path")]
     InvalidPath,
+    #[error("Uninitialized: {0}")]
+    Uninitialized(String),
     #[error("Process failed: {0}")]
     ProcessFailed(String),
     #[error("Invalid json value: {0}")]

@@ -6,7 +6,7 @@ use lib_pendulum_launch::{
 use std::{
     fs::{self, DirEntry},
     io,
-    path::{Path, PathBuf},
+    path::PathBuf,
 };
 use structopt::StructOpt;
 
@@ -55,8 +55,16 @@ impl App {
 
     /// Launche parachain and idle until the program receives a `SIGINT`
     fn launch(&mut self) -> Result<()> {
-        let config = deserialize_config(&self.0.config)?;
-        Launcher::from(config).run()
+        let (quiet, log) = (self.0.quiet, self.0.log.to_owned());
+
+        if quiet && log.is_some() {
+            return Err(Error::ProcessFailed(
+                "Cannot use `--quiet` and `--log <DIR>` together".to_string(),
+            ));
+        }
+
+        let mut config = deserialize_config(&self.0.config)?;
+        Launcher::new(&mut config, log)?.run()
     }
 
     /// Export genesis data to an `outdir` if provided or to the project root
@@ -67,10 +75,10 @@ impl App {
         name: Option<String>,
         outdir: Option<PathBuf>,
     ) -> Result<()> {
-        let bin = path_to_str(&bin)?;
-        let chain = path_to_str(&chain)?;
+        let bin = util::path_to_str(&bin)?;
+        let chain = util::path_to_str(&chain)?;
         let name = name.unwrap_or_else(|| "local-chain".to_string());
-        let outdir = path_to_str(&outdir.unwrap_or(util::locate_project_root()?))?;
+        let outdir = util::path_to_str(&outdir.unwrap_or(util::locate_project_root()?))?;
 
         sub_command::export_genesis(bin, chain, name, outdir)
     }
@@ -83,10 +91,10 @@ impl App {
         para_id: Option<u32>,
         outdir: Option<PathBuf>,
     ) -> Result<()> {
-        let bin = path_to_str(&bin)?;
+        let bin = util::path_to_str(&bin)?;
         let name = name.unwrap_or_else(|| "local-chain".to_string());
-        let para_id = para_id.unwrap_or_else(|| 2000);
-        let outdir = path_to_str(&outdir.unwrap_or(util::locate_project_root()?))?;
+        let para_id = para_id.unwrap_or(2000);
+        let outdir = util::path_to_str(&outdir.unwrap_or(util::locate_project_root()?))?;
 
         sub_command::generate_specs(bin, name, para_id, outdir)
     }
@@ -121,16 +129,8 @@ fn search_default_config() -> Result<Option<PathBuf>> {
 
 fn try_get_config_entry(entry: io::Result<DirEntry>) -> Result<Option<PathBuf>> {
     let path = entry?.path();
-    match path.is_file() && path_to_str(&path)?.contains("launch.json") {
+    match path.is_file() && util::path_to_str(&path)?.contains("launch.json") {
         true => Ok(Some(path)),
         false => Ok(None),
-    }
-}
-
-// Attempt to parse a PathBuf from a &str
-fn path_to_str(path: &Path) -> Result<String> {
-    match path.to_str() {
-        Some(path) => Ok(path.to_string()),
-        None => Err(Error::InvalidPath),
     }
 }

@@ -1,5 +1,5 @@
 use super::Node;
-use crate::Task;
+use crate::{error::Result, PathBuffer, Task};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -11,10 +11,11 @@ impl Validator {
         Self(node)
     }
 
-    pub fn create_task(&self) -> Task {
-        let mut command = self.0.create_command();
-        command.arg("--validator");
-
-        Task::new(command)
+    #[inline]
+    pub fn create_task(&self, log_dir: &Option<PathBuffer>) -> Result<Task> {
+        Ok(Task::new(
+            self.0
+                .create_command(vec!["--validator".to_owned()], log_dir)?,
+        ))
     }
 }
