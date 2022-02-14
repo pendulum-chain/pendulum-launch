@@ -17,16 +17,18 @@ pub enum Error {
     #[error("Invalid json value: {0}")]
     InvalidJsonValue(String),
     #[error("{0}")]
+    LauncherError(String),
+    #[error(transparent)]
     Io(#[from] io::Error),
-    #[error("{0}")]
+    #[error(transparent)]
     Signal(#[from] ctrlc::Error),
-    #[error("{0}")]
+    #[error(transparent)]
     ParseJson(#[from] json::Error),
-    #[error("{0}")]
+    #[error(transparent)]
     FromUtf8(#[from] string::FromUtf8Error),
-    #[error("{0}")]
+    #[error(transparent)]
     Serde(#[from] SerdeError),
-    #[error("{0}")]
+    #[error(transparent)]
     Other(#[from] Box<dyn error::Error>),
 }
 
