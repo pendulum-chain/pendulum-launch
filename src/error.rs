@@ -1,5 +1,5 @@
 use serde::{de, ser};
-use std::{error, fmt, io, result, string};
+use std::{error, fmt, io, result, string, sync::PoisonError};
 use thiserror::Error;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -16,12 +16,12 @@ pub enum Error {
     ProcessFailed(String),
     #[error("Invalid json value: {0}")]
     InvalidJsonValue(String),
-    #[error("{0}")]
-    LauncherError(String),
+    #[error("Lock poisoned {0}")]
+    Poison(String),
     #[error(transparent)]
     Io(#[from] io::Error),
     #[error(transparent)]
-    Signal(#[from] ctrlc::Error),
+    Ctrlc(#[from] ctrlc::Error),
     #[error(transparent)]
     ParseJson(#[from] json::Error),
     #[error(transparent)]
@@ -30,6 +30,12 @@ pub enum Error {
     Serde(#[from] SerdeError),
     #[error(transparent)]
     Other(#[from] Box<dyn error::Error>),
+}
+
+impl<T> From<PoisonError<T>> for Error {
+    fn from(err: PoisonError<T>) -> Self {
+        Self::Poison(err.to_string())
+    }
 }
 
 #[derive(Debug, Error)]

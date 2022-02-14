@@ -64,8 +64,7 @@ dependencies = [
 [[package]]
 name = "ctrlc"
 version = "3.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a19c6cedffdc8c03a3346d723eb20bd85a13362bb96dc2ac000842c6381ec7bf"
+source = "git+https://github.com/xiuxiu62/rust-ctrlc.git#97c2bcd7d171342dd480142de6d15c416602b153"
 dependencies = [
  "nix",
  "winapi",

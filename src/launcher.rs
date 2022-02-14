@@ -28,16 +28,18 @@ impl<'a> Launcher {
         // Flag for validating completion of tasks
         let finished_pair = Arc::new((Mutex::new(false), Condvar::new()));
 
-        self.start()?;
-
         // Listen for SIGINT, setting the finish flag and notifying the condition variable upon
         // receival
         let finished_pair_clone = Arc::clone(&finished_pair);
-        ctrlc::set_handler(move || {
+        let sig_handler = move || -> std::result::Result<(), ctrlc::Error> {
             let (lock, cvar) = &*finished_pair_clone;
-            *lock.lock().unwrap() = true;
+            *lock.lock()? = true;
             cvar.notify_one();
-        })?;
+            Ok(())
+        };
+        ctrlc::set_handler(sig_handler)?;
+
+        self.start()?;
 
         // Wait for the thread to finish
         let (lock, cvar) = &*finished_pair;
