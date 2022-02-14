@@ -1,11 +1,11 @@
 [package]
 name = "pendulum-launch"
-version = "0.1.0"
+version = "0.2.0"
+authors = ["xiuxiu62 <justin@satoshipay.io>"]
 edition = "2021"
-
-[workspace]
-members = ["crates/*/"]
-exclude = ["crates"]
+description = "A launcher for Pendulum and other substrate parachains"
+documentation = "https://app.gitbook.com/o/axoDOM7fvGlVLdMc0tdk/s/JPteeI8zaYldKmZxPrYG/build/using-pendulum-launch"
+license = "Unlicense"
 
 [[bin]]
 name = "pendulum-launch"
@@ -17,7 +17,6 @@ path = "src/lib.rs"
 
 [dependencies]
 ctrlc = { version = "3.2.1", features = [ "termination"], git = "https://github.com/xiuxiu62/rust-ctrlc.git" }
-# ctrlc = { version = "3.2.1", features = [ "termination"], path = "./crates/rust-ctrlc" }
 json = "0.12.4"
 serde = { version = "1.0.136", features = ["derive"] } 
 serde_json ="1.0.78"
