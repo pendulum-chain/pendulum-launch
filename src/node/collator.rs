@@ -4,7 +4,7 @@ use crate::{
     PathBuffer, Task,
 };
 use serde::{Deserialize, Serialize};
-use std::mem;
+use std::process;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CollatorRelay {
@@ -47,6 +47,17 @@ impl Collator {
     }
 
     pub fn create_task(&mut self, log_dir: &Option<PathBuffer>) -> Result<Task> {
+        let args = self.get_args()?;
+        Ok(Task::new(self.inner.create_command(args, log_dir)?))
+    }
+
+    #[inline]
+    pub fn as_command(&mut self) -> Result<process::Command> {
+        let args = self.get_args()?;
+        self.inner.create_command(args, &None)
+    }
+
+    fn get_args(&mut self) -> Result<Vec<String>> {
         let chain = match self.relay.chain.to_str() {
             Some(chain) => chain,
             None => return Err(Error::InvalidPath),
@@ -67,9 +78,8 @@ impl Collator {
 
         // Append validator args if there are any, replacing them with None
         //
-        // This is nothing of concern, as the Collator vtable will be dropped along with
-        // other nodes upon task initialization
-        if let Some(mut validator_args) = mem::take(&mut self.relay.args) {
+        // This is nothing of concern, as the Nodes are upon task initialization
+        if let Some(mut validator_args) = self.relay.args.take() {
             args.append(&mut validator_args);
         };
 
@@ -78,6 +88,6 @@ impl Collator {
             args.push(rpc_port.to_string());
         };
 
-        Ok(Task::new(self.inner.create_command(args, log_dir)?))
+        Ok(args)
     }
 }
