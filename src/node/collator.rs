@@ -1,4 +1,4 @@
-use super::Node;
+use super::{AsCommand, Node};
 use crate::{
     error::{Error, Result},
     PathBuffer, Task,
@@ -47,8 +47,10 @@ impl Collator {
     }
 
     pub fn create_task(&mut self, log_dir: &Option<PathBuffer>) -> Result<Task> {
-        let args = self.get_args()?;
-        Ok(Task::new(self.inner.create_command(args, log_dir)?))
+        let mut command = self.inner.as_command_internal(log_dir)?;
+        command.args(self.get_args()?);
+
+        Ok(Task::new(command))
     }
 
     #[inline]
