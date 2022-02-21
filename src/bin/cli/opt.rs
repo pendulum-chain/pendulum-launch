@@ -25,6 +25,11 @@ pub enum Command {
         #[structopt(short, long, parse(from_os_str), about = "Alternate output directory")]
         outdir: Option<PathBuf>,
     },
+    #[structopt(about = "Generate docker-compose.yml")]
+    GenerateDocker {
+        #[structopt(short, long, parse(from_os_str), about = "Alternate output directory")]
+        outdir: Option<PathBuf>,
+    },
 }
 
 #[derive(Debug, StructOpt)]

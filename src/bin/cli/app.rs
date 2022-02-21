@@ -46,6 +46,7 @@ impl App {
                     para_id.to_owned(),
                     outdir.to_owned(),
                 )?,
+                Command::GenerateDocker { outdir } => self.generate_docker(outdir.to_owned())?,
             },
             None => self.launch()?,
         };
@@ -97,6 +98,12 @@ impl App {
         let outdir = util::path_to_str(&outdir.unwrap_or(util::locate_project_root()?))?;
 
         sub_command::generate_specs(bin, name, para_id, outdir)
+    }
+
+    fn generate_docker(&self, out_dir: Option<PathBuf>) -> Result<()> {
+        let config = deserialize_config(&self.0.config)?;
+        let out_dir = util::path_to_str(&out_dir.unwrap_or(util::locate_project_root()?))?;
+        sub_command::generate_docker(config, out_dir)
     }
 }
 

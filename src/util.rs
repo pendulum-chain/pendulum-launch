@@ -46,3 +46,7 @@ pub fn path_to_str<P: AsRef<Path>>(path: P) -> Result<String> {
         None => Err(Error::InvalidPath),
     }
 }
+
+pub fn get_name(bin: &str, ws_port: u16) -> String {
+    format!("{}-{}", bin, ws_port)
+}

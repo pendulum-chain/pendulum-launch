@@ -4,11 +4,7 @@ mod validator;
 pub use collator::{Collator, CollatorRelay};
 pub use validator::Validator;
 
-use crate::{
-    error::{Error, Result},
-    launcher::LOG_DIR,
-    util, PathBuffer,
-};
+use crate::{error::Result, launcher::LOG_DIR, util, PathBuffer};
 use serde::{Deserialize, Serialize};
 use std::{
     fs::File,
@@ -23,7 +19,7 @@ pub trait AsCommand {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Node {
-    name: Option<String>,
+    name: String,
     bin: PathBuffer,
     chain: PathBuffer,
     args: Vec<String>,
@@ -42,7 +38,11 @@ impl Node {
         ws_port: u16,
         rpc_port: Option<u16>,
     ) -> Self {
-        let name = name.map(|name| name.to_string());
+        let name = match name {
+            Some(name) => name.to_owned(),
+            None => util::get_name(bin, ws_port),
+        };
+
         let bin = PathBuffer::from(bin);
         let chain = PathBuffer::from(chain);
         let args = args.into_iter().map(|arg| arg.to_owned()).collect();
@@ -76,6 +76,8 @@ impl Node {
         command
             .stdout(log)
             .args(self.args.to_owned())
+            .arg("--name")
+            .arg(self.name.to_owned())
             .arg("--chain")
             .arg(self.chain.as_os_str())
             .arg("--port")
@@ -89,25 +91,11 @@ impl Node {
             command.arg(rpc_port.to_string());
         };
 
-        // Use provided name or generate one if none is provided
-        command.arg("--name");
-        match &self.name {
-            Some(name) => command.arg(name),
-            None => command.arg(self.get_log_name()?),
-        };
-
         Ok(command)
     }
 
     pub fn get_log_name(&self) -> Result<String> {
-        let bin_path = util::path_to_str(self.bin.as_ref())?;
-        let bin_name = match bin_path.split('/').last() {
-            Some(bin) => bin,
-            None => return Err(Error::InvalidPath),
-        };
-        let ws_port = self.ws_port;
-
-        Ok(format!("{}-{}.log", bin_name, ws_port))
+        Ok(format!("{}.log", self.name))
     }
 }
 
@@ -126,25 +114,19 @@ impl AsCommand for Node {
         command
             .stdout(log)
             .args(self.args.to_owned())
+            .arg("--name")
+            .arg(self.name.to_owned())
             .arg("--chain")
             .arg(self.chain.as_os_str())
             .arg("--port")
             .arg(self.port.to_string())
             .arg("--ws-port")
-            .arg(&self.ws_port.to_string());
+            .arg(self.ws_port.to_string());
 
         if let Some(rpc_port) = self.rpc_port {
             command.arg("--rpc-port");
             command.arg(rpc_port.to_string());
         };
-
-        // Use provided name or generate one if none is provided
-        command.arg("--name");
-        match &self.name {
-            Some(name) => command.arg(name),
-            None => command.arg(self.get_log_name()?),
-        };
-
         Ok(command)
     }
 
