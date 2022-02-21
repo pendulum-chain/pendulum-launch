@@ -46,8 +46,8 @@ impl Collator {
         Self { inner, relay }
     }
 
-    pub fn create_task(&mut self, log_dir: &Option<PathBuffer>) -> Result<Task> {
-        let mut command = self.inner.as_command_internal(log_dir)?;
+    pub fn create_task(&self) -> Result<Task> {
+        let mut command = self.inner.as_command_internal()?;
         command.args(self.get_args()?);
 
         Ok(Task::new(command))
@@ -56,10 +56,10 @@ impl Collator {
     #[inline]
     pub fn as_command(&mut self) -> Result<process::Command> {
         let args = self.get_args()?;
-        self.inner.create_command(args, &None)
+        self.inner.create_command(args, None)
     }
 
-    fn get_args(&mut self) -> Result<Vec<String>> {
+    fn get_args(&self) -> Result<Vec<String>> {
         let chain = match self.relay.chain.to_str() {
             Some(chain) => chain,
             None => return Err(Error::InvalidPath),
@@ -81,7 +81,7 @@ impl Collator {
         // Append validator args if there are any, replacing them with None
         //
         // This is nothing of concern, as the Nodes are upon task initialization
-        if let Some(mut validator_args) = self.relay.args.take() {
+        if let Some(mut validator_args) = self.relay.args.clone() {
             args.append(&mut validator_args);
         };
 
@@ -91,5 +91,18 @@ impl Collator {
         };
 
         Ok(args)
+    }
+}
+
+impl AsCommand for Collator {
+    fn as_command_internal(&self) -> Result<process::Command> {
+        let mut command = self.inner.as_command_internal()?;
+        command.args(self.get_args()?);
+
+        Ok(command)
+    }
+
+    fn as_command_external(&self) -> Result<String> {
+        Ok("".to_owned())
     }
 }

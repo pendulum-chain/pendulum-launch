@@ -6,12 +6,11 @@ use std::{
     ffi::OsStr,
     fmt,
     path::{Path, PathBuf},
-    rc::Rc,
 };
 
-/// A wrapper around a reference counted PathBuf for extended implementation
+/// A wrapper around PathBuf for extended impl
 #[derive(Debug)]
-pub struct PathBuffer(Rc<PathBuf>);
+pub struct PathBuffer(PathBuf);
 
 impl PathBuffer {
     pub fn to_str(&self) -> Option<&str> {
@@ -29,13 +28,13 @@ impl PathBuffer {
 
 impl From<&str> for PathBuffer {
     fn from(value: &str) -> Self {
-        PathBuffer(Rc::new(PathBuf::from(value)))
+        PathBuffer(PathBuf::from(value))
     }
 }
 
 impl From<PathBuf> for PathBuffer {
     fn from(path: PathBuf) -> Self {
-        PathBuffer(Rc::new(path))
+        PathBuffer(path)
     }
 }
 

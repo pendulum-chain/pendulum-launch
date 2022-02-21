@@ -6,16 +6,18 @@ pub use validator::Validator;
 
 use crate::{
     error::{Error, Result},
+    launcher::LOG_DIR,
     util, PathBuffer,
 };
 use serde::{Deserialize, Serialize};
 use std::{
     fs::File,
     process::{self, Stdio},
+    sync::Arc,
 };
 
 pub trait AsCommand {
-    fn as_command_internal(&self, log_dir: &Option<PathBuffer>) -> Result<process::Command>;
+    fn as_command_internal(&self) -> Result<process::Command>;
     fn as_command_external(&self) -> Result<String>;
 }
 
@@ -59,7 +61,7 @@ impl Node {
     pub fn create_command(
         &self,
         args: Vec<String>,
-        log_dir: &Option<PathBuffer>,
+        log_dir: Option<PathBuffer>,
     ) -> Result<process::Command> {
         let log = match log_dir {
             Some(path) => {
@@ -110,8 +112,8 @@ impl Node {
 }
 
 impl AsCommand for Node {
-    fn as_command_internal(&self, log_dir: &Option<PathBuffer>) -> Result<process::Command> {
-        let log = match log_dir {
+    fn as_command_internal(&self) -> Result<process::Command> {
+        let log = match &*Arc::clone(&LOG_DIR).read()? {
             Some(path) => {
                 let path = path.join(self.get_log_name()?);
                 let file = File::create(path.as_ref())?;
