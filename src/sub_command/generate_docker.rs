@@ -41,7 +41,8 @@ fn generate_collator_service(collator: &Collator) -> Result<String> {
     image: pendulumchain/pendulum:latest
     build:
       context: .
-      dockerfile: dockerfile"#,
+      dockerfile: dockerfile
+    ports:"#,
         name, name
     );
 
