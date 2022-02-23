@@ -18,6 +18,7 @@
                 "name": "glitch-princess-1",
                 "bin": "./bin/pendulum-collator",
                 "chain": "./specs/rococo-local-parachain-raw.json",
+                "dockerfile": "./tmp/Dockerfile",
                 "args": [
                     "--force-authoring",
                     "--enable-offchain-indexing",

@@ -24,6 +24,10 @@ impl PathBuffer {
     pub fn join<P: AsRef<Path>>(&self, path: P) -> Self {
         Self::from(self.0.join(path))
     }
+
+    pub fn maybe_from(value: Option<&str>) -> Option<Self> {
+        value.map(Self::from)
+    }
 }
 
 impl From<&str> for PathBuffer {

@@ -40,7 +40,7 @@ pub fn ensure_success(output: &Output) -> Result<()> {
 }
 
 // Attempt to parse a PathBuf from a &str
-pub fn path_to_str<P: AsRef<Path>>(path: P) -> Result<String> {
+pub fn path_to_string<P: AsRef<Path>>(path: P) -> Result<String> {
     match path.as_ref().to_str() {
         Some(path) => Ok(path.to_string()),
         None => Err(Error::InvalidPath),

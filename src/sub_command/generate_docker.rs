@@ -5,6 +5,7 @@ use crate::{
 };
 use std::fs;
 
+// Static ports exposed in the base image
 const INTERNAL_PORTS: [u16; 6] = [8844, 30344, 9944, 8855, 30355, 9955];
 
 pub fn generate_docker(config: Config, out_dir: String) -> Result<()> {
@@ -35,15 +36,18 @@ services:"#,
 
 fn generate_collator_service(collator: &Collator) -> Result<String> {
     let name = collator.name();
+
     let mut service = format!(
         r#"  {}:
     container_name: {} 
     image: pendulumchain/pendulum:latest
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: {}
     ports:"#,
-        name, name
+        name,
+        name,
+        collator.docker_file()?
     );
 
     map_ports(collator)

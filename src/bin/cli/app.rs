@@ -76,10 +76,10 @@ impl App {
         name: Option<String>,
         outdir: Option<PathBuf>,
     ) -> Result<()> {
-        let bin = util::path_to_str(&bin)?;
-        let chain = util::path_to_str(&chain)?;
+        let bin = util::path_to_string(&bin)?;
+        let chain = util::path_to_string(&chain)?;
         let name = name.unwrap_or_else(|| "local-chain".to_string());
-        let outdir = util::path_to_str(&outdir.unwrap_or(util::locate_project_root()?))?;
+        let outdir = util::path_to_string(&outdir.unwrap_or(util::locate_project_root()?))?;
 
         sub_command::export_genesis(bin, chain, name, outdir)
     }
@@ -92,17 +92,17 @@ impl App {
         para_id: Option<u32>,
         outdir: Option<PathBuf>,
     ) -> Result<()> {
-        let bin = util::path_to_str(&bin)?;
+        let bin = util::path_to_string(&bin)?;
         let name = name.unwrap_or_else(|| "local-chain".to_string());
         let para_id = para_id.unwrap_or(2000);
-        let outdir = util::path_to_str(&outdir.unwrap_or(util::locate_project_root()?))?;
+        let outdir = util::path_to_string(&outdir.unwrap_or(util::locate_project_root()?))?;
 
         sub_command::generate_specs(bin, name, para_id, outdir)
     }
 
     fn generate_docker(&self, out_dir: Option<PathBuf>) -> Result<()> {
         let config = deserialize_config(&self.0.config)?;
-        let out_dir = util::path_to_str(&out_dir.unwrap_or(util::locate_project_root()?))?;
+        let out_dir = util::path_to_string(&out_dir.unwrap_or(util::locate_project_root()?))?;
         sub_command::generate_docker(config, out_dir)
     }
 }
@@ -136,7 +136,7 @@ fn search_default_config() -> Result<Option<PathBuf>> {
 
 fn try_get_config_entry(entry: io::Result<DirEntry>) -> Result<Option<PathBuf>> {
     let path = entry?.path();
-    match path.is_file() && util::path_to_str(&path)?.contains("launch.json") {
+    match path.is_file() && util::path_to_string(&path)?.contains("launch.json") {
         true => Ok(Some(path)),
         false => Ok(None),
     }

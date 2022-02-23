@@ -51,14 +51,13 @@ impl Collator {
     }
 
     #[inline]
-    pub fn as_command(&mut self) -> Result<process::Command> {
-        let args = self.get_args()?;
-        self.inner.create_command(args, None)
+    pub fn name(&self) -> &str {
+        &self.inner.name
     }
 
     #[inline]
-    pub fn name(&self) -> &str {
-        &self.inner.name
+    pub fn docker_file(&self) -> Result<String> {
+        self.inner.docker_file()
     }
 
     pub fn ports(&self) -> [Option<u16>; 6] {
@@ -77,7 +76,7 @@ impl Collator {
             "--collator".to_owned(),
             "--".to_owned(),
             "--chain".to_owned(),
-            util::path_to_str(self.relay.chain.as_ref())?,
+            util::path_to_string(self.relay.chain.as_ref())?,
             "--port".to_owned(),
             self.relay.port.to_string(),
             "--ws-port".to_owned(),
