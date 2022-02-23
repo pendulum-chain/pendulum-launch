@@ -15,7 +15,7 @@
     "collators": [
         {
             "inner": {
-                "name": "glitch-princess",
+                "name": "glitch-princess-1",
                 "bin": "./bin/pendulum-collator",
                 "chain": "./specs/rococo-local-parachain-raw.json",
                 "args": [
@@ -34,6 +34,30 @@
                 ],
                 "port": 30345,
                 "ws_port": 9955,
+                "rpc_port": null
+            }
+        },
+        {
+            "inner": {
+                "name": "glitch-princess-2",
+                "bin": "./bin/pendulum-collator",
+                "chain": "./specs/rococo-local-parachain-raw.json",
+                "args": [
+                    "--force-authoring",
+                    "--enable-offchain-indexing",
+                    "true"
+                ],
+                "port": 30346,
+                "ws_port": 8846,
+                "rpc_port": null
+            },
+            "relay": {
+                "chain": "./specs/rococo-custom-2-raw.json",
+                "args": [
+                    "--force-authoring"
+                ],
+                "port": 30347,
+                "ws_port": 9957,
                 "rpc_port": null
             }
         }

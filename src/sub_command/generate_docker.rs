@@ -5,6 +5,8 @@ use crate::{
 };
 use std::fs;
 
+const INTERNAL_PORTS: [u16; 6] = [8844, 30344, 9944, 8855, 30355, 9955];
+
 pub fn generate_docker(config: Config, out_dir: String) -> Result<()> {
     let out_file = format!("{}/docker-compose.yml", out_dir);
     let contents = generate_contents(&config)?;
@@ -56,27 +58,11 @@ fn generate_collator_service(collator: &Collator) -> Result<String> {
 }
 
 fn map_ports(collator: &Collator) -> Vec<String> {
-    let map_port = |(i, p): (usize, Option<u16>)| -> String {
-        // SAFETY: we've filtered on None
-        let outer_port = p.unwrap().to_string();
-        let inner_port = match i {
-            0 => "1",
-            1 => "1",
-            2 => "1",
-            3 => "1",
-            4 => "1",
-            5 => "1",
-            _ => "0", // we won't ever get here, since collator.ports() returns an array with a known size
-        };
-
-        format!("- \"{}:{}\"", outer_port, inner_port)
-    };
-
     collator
         .ports()
         .into_iter()
-        .filter(|p| p.is_some())
-        .enumerate()
-        .map(map_port)
+        .flatten()
+        .zip(INTERNAL_PORTS)
+        .map(|(outer_port, inner_port)| format!("- \"{}:{}\"", outer_port, inner_port))
         .collect()
 }

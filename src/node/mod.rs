@@ -40,7 +40,7 @@ impl Node {
     ) -> Self {
         let name = match name {
             Some(name) => name.to_owned(),
-            None => util::get_name(bin, ws_port),
+            None => Self::get_name(bin, ws_port),
         };
 
         let bin = PathBuffer::from(bin);
@@ -77,7 +77,7 @@ impl Node {
             .stdout(log)
             .args(self.args.to_owned())
             .arg("--name")
-            .arg(self.name.to_owned())
+            .arg(&self.name)
             .arg("--chain")
             .arg(self.chain.as_os_str())
             .arg("--port")
@@ -94,8 +94,36 @@ impl Node {
         Ok(command)
     }
 
+    fn get_args(&self) -> Result<Vec<String>> {
+        let mut args = self.args.to_owned();
+        args.append(
+            vec![
+                "--name".to_owned(),
+                self.name.to_owned(),
+                "--chain".to_owned(),
+                util::path_to_str(self.chain.as_ref())?,
+                "--port".to_owned(),
+                self.port.to_string(),
+                "--ws-port".to_owned(),
+                self.ws_port.to_string(),
+            ]
+            .as_mut(),
+        );
+
+        if let Some(rpc_port) = self.rpc_port {
+            args.push("--rpc-port".to_owned());
+            args.push(rpc_port.to_string());
+        };
+
+        Ok(args)
+    }
+
     pub fn get_log_name(&self) -> Result<String> {
         Ok(format!("{}.log", self.name))
+    }
+
+    fn get_name(bin: &str, ws_port: u16) -> String {
+        format!("{}-{}", bin, ws_port)
     }
 }
 
@@ -111,26 +139,15 @@ impl AsCommand for Node {
         };
 
         let mut command = process::Command::new(self.bin.as_ref());
-        command
-            .stdout(log)
-            .args(self.args.to_owned())
-            .arg("--name")
-            .arg(self.name.to_owned())
-            .arg("--chain")
-            .arg(self.chain.as_os_str())
-            .arg("--port")
-            .arg(self.port.to_string())
-            .arg("--ws-port")
-            .arg(self.ws_port.to_string());
+        command.stdout(log).args(self.get_args()?);
 
-        if let Some(rpc_port) = self.rpc_port {
-            command.arg("--rpc-port");
-            command.arg(rpc_port.to_string());
-        };
         Ok(command)
     }
 
     fn as_command_external(&self) -> Result<String> {
-        Ok("".to_owned())
+        let mut command = vec![util::path_to_str(self.bin.as_ref())?];
+        command.append(self.get_args()?.as_mut());
+
+        Ok(command.join(" "))
     }
 }

@@ -14,7 +14,7 @@ impl Validator {
 
     #[inline]
     pub fn create_task(&self) -> Result<Task> {
-        Ok(Task::new(self.0.as_command_internal()?))
+        Ok(Task::new(self.as_command_internal()?))
     }
 }
 
@@ -26,15 +26,10 @@ impl AsRef<Node> for Validator {
 
 impl AsCommand for Validator {
     fn as_command_internal(&self) -> Result<process::Command> {
-        let mut cmd = self.0.as_command_internal()?;
-        cmd.args(self.0.args.clone());
-
-        Ok(cmd)
+        self.0.as_command_internal()
     }
 
     fn as_command_external(&self) -> Result<String> {
-        // let bin = self.as_ref().bin.as_os_str();
-        // let args = self.as_ref().args;
-        Ok("".to_owned())
+        self.0.as_command_external()
     }
 }

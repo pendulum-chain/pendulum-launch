@@ -1,8 +1,5 @@
 use super::{AsCommand, Node};
-use crate::{
-    error::{Error, Result},
-    util, PathBuffer, Task,
-};
+use crate::{error::Result, util, PathBuffer, Task};
 use serde::{Deserialize, Serialize};
 use std::process;
 
@@ -76,18 +73,11 @@ impl Collator {
     }
 
     fn get_args(&self) -> Result<Vec<String>> {
-        let chain = match self.relay.chain.to_str() {
-            Some(chain) => chain,
-            None => return Err(Error::InvalidPath),
-        };
-
         let mut args = vec![
             "--collator".to_owned(),
             "--".to_owned(),
-            "--execution=wasm".to_owned(),
-            "".to_owned(),
             "--chain".to_owned(),
-            chain.to_owned(),
+            util::path_to_str(self.relay.chain.as_ref())?,
             "--port".to_owned(),
             self.relay.port.to_string(),
             "--ws-port".to_owned(),
@@ -119,10 +109,10 @@ impl AsCommand for Collator {
     }
 
     fn as_command_external(&self) -> Result<String> {
-        let bin_name = util::path_to_str(self.inner.bin.as_ref())?;
-        Ok(self
-            .get_args()?
-            .into_iter()
-            .fold(bin_name, |acc, arg| acc + " " + &arg))
+        let mut command = self.inner.as_command_external()?;
+        command.push(' ');
+        command.push_str(&self.get_args()?.join(" "));
+
+        Ok(command)
     }
 }
