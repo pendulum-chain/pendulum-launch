@@ -7,6 +7,5 @@ use lib_pendulum_launch::error::Result;
 use opt::Options;
 
 fn main() -> Result<()> {
-    let mut app = App::from_args();
-    app.run()
+    App::from_args().run()
 }

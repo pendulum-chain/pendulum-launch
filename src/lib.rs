@@ -1,4 +1,5 @@
-#![allow(dead_code)]
+#![allow(clippy::mutex_atomic)]
+#![allow(clippy::too_many_arguments)]
 
 mod config;
 pub mod error;

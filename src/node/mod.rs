@@ -4,17 +4,25 @@ mod validator;
 pub use collator::{Collator, CollatorRelay};
 pub use validator::Validator;
 
-use crate::error::Error;
-use crate::{error::Result, util, PathBuffer};
+use crate::{error::Result, launcher::LOG_DIR, util, PathBuffer};
 use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::process::{self, Stdio};
+use std::{
+    fs::File,
+    process::{self, Stdio},
+    sync::Arc,
+};
+
+pub trait AsCommand {
+    fn as_command_internal(&self) -> Result<process::Command>;
+    fn as_command_external(&self) -> Result<String>;
+}
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Node {
-    name: Option<String>,
+    name: String,
     bin: PathBuffer,
     chain: PathBuffer,
+    dockerfile: Option<PathBuffer>,
     args: Vec<String>,
     port: u16,
     ws_port: u16,
@@ -26,33 +34,77 @@ impl Node {
         name: Option<&str>,
         bin: &str,
         chain: &str,
+        dockerfile: Option<&str>,
         args: Vec<&str>,
         port: u16,
         ws_port: u16,
         rpc_port: Option<u16>,
     ) -> Self {
-        let name = name.map(|name| name.to_string());
-        let bin = PathBuffer::from(bin);
-        let chain = PathBuffer::from(chain);
+        let name = match name {
+            Some(name) => name.to_owned(),
+            None => Self::get_name(bin, ws_port),
+        };
+
         let args = args.into_iter().map(|arg| arg.to_owned()).collect();
 
         Self {
             name,
-            bin,
+            bin: PathBuffer::from(bin),
+            chain: PathBuffer::from(chain),
+            dockerfile: PathBuffer::maybe_from(dockerfile),
             args,
-            chain,
             port,
             ws_port,
             rpc_port,
         }
     }
 
-    pub fn create_command(
-        &self,
-        args: Vec<String>,
-        log_dir: &Option<PathBuffer>,
-    ) -> Result<process::Command> {
-        let log = match log_dir {
+    #[inline]
+    pub fn get_log_name(&self) -> Result<String> {
+        Ok(format!("{}.log", self.name))
+    }
+
+    #[inline]
+    fn get_name(bin: &str, ws_port: u16) -> String {
+        format!("{}-{}", bin, ws_port)
+    }
+
+    #[inline]
+    fn docker_file(&self) -> Result<String> {
+        match &self.dockerfile {
+            Some(path) => util::path_to_string(path.as_ref()),
+            None => Ok("Dockerfile".to_owned()),
+        }
+    }
+
+    fn get_args(&self) -> Result<Vec<String>> {
+        let mut args = self.args.to_owned();
+        args.append(
+            vec![
+                "--name".to_owned(),
+                self.name.to_owned(),
+                "--chain".to_owned(),
+                util::path_to_string(self.chain.as_ref())?,
+                "--port".to_owned(),
+                self.port.to_string(),
+                "--ws-port".to_owned(),
+                self.ws_port.to_string(),
+            ]
+            .as_mut(),
+        );
+
+        if let Some(rpc_port) = self.rpc_port {
+            args.push("--rpc-port".to_owned());
+            args.push(rpc_port.to_string());
+        };
+
+        Ok(args)
+    }
+}
+
+impl AsCommand for Node {
+    fn as_command_internal(&self) -> Result<process::Command> {
+        let log = match &*Arc::clone(&LOG_DIR).read()? {
             Some(path) => {
                 let path = path.join(self.get_log_name()?);
                 let file = File::create(path.as_ref())?;
@@ -62,32 +114,15 @@ impl Node {
         };
 
         let mut command = process::Command::new(self.bin.as_ref());
-        command
-            .stdout(log)
-            .args(self.args.to_owned())
-            .arg("--chain")
-            .arg(self.chain.as_os_str())
-            .arg("--port")
-            .arg(self.port.to_string())
-            .arg("--ws-port")
-            .arg(&self.ws_port.to_string())
-            .args(args);
-
-        if let Some(rpc_port) = self.rpc_port {
-            command.arg(format!("--rpc-port {}", rpc_port));
-        };
+        command.stdout(log).args(self.get_args()?);
 
         Ok(command)
     }
 
-    pub fn get_log_name(&self) -> Result<String> {
-        let bin_path = util::path_to_str(self.bin.as_ref())?;
-        let bin_name = match bin_path.split('/').last() {
-            Some(bin) => bin,
-            None => return Err(Error::InvalidPath),
-        };
-        let ws_port = self.ws_port;
+    fn as_command_external(&self) -> Result<String> {
+        let mut command = vec![util::path_to_string(self.bin.as_ref())?];
+        command.append(self.get_args()?.as_mut());
 
-        Ok(format!("{}-{}.log", bin_name, ws_port))
+        Ok(command.join(" "))
     }
 }

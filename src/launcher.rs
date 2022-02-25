@@ -1,9 +1,14 @@
 use crate::{error::Result, Config, PathBuffer, Task};
+use lazy_static::lazy_static;
 use std::{
     path::PathBuf,
-    sync::{Arc, Condvar, Mutex},
+    sync::{Arc, Condvar, Mutex, RwLock},
     time::{Duration, Instant},
 };
+
+lazy_static! {
+    pub(crate) static ref LOG_DIR: Arc<RwLock<Option<PathBuffer>>> = Arc::new(RwLock::new(None));
+}
 
 #[derive(Debug)]
 pub struct Launcher {
@@ -13,8 +18,11 @@ pub struct Launcher {
 impl<'a> Launcher {
     #[inline]
     pub fn new(config: &mut Config, log_dir: Option<PathBuf>) -> Result<Self> {
+        // Initialize LOG_DIR
+        *Arc::clone(&LOG_DIR).write()? = log_dir.map(PathBuffer::from);
+
         Ok(Self {
-            tasks: config.generate_tasks(log_dir.map(PathBuffer::from))?,
+            tasks: config.generate_tasks()?,
             start_time: Instant::now(),
         })
     }
