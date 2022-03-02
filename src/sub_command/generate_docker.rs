@@ -1,6 +1,6 @@
 use crate::{
     error::Result,
-    node::{AsCommand, Collator},
+    node::{AsCommand, Node},
     Config,
 };
 use std::fs;
@@ -23,19 +23,31 @@ fn generate_contents(config: &Config) -> Result<String> {
 services:"#,
     );
 
-    config
-        .collators
-        .iter()
-        .map(generate_collator_service)
-        .collect::<Result<Vec<String>>>()?
-        .into_iter()
-        .for_each(|service| docker_compose.push_str(&format!("\n{}", service)));
+    write_service(&mut docker_compose, &config.validators)?;
+    write_service(&mut docker_compose, &config.collators)?;
 
     Ok(docker_compose)
 }
 
-fn generate_collator_service(collator: &Collator) -> Result<String> {
-    let name = collator.name();
+fn write_service<N>(docker_compose: &mut String, nodes: &Vec<N>) -> Result<()>
+where
+    N: Node + AsCommand,
+{
+    nodes
+        .iter()
+        .map(generate_service)
+        .collect::<Result<Vec<String>>>()?
+        .into_iter()
+        .for_each(|service| docker_compose.push_str(&format!("\n{}", service)));
+
+    Ok(())
+}
+
+fn generate_service<N>(node: &N) -> Result<String>
+where
+    N: Node + AsCommand,
+{
+    let name = node.name();
 
     let mut service = format!(
         r#"  {}:
@@ -47,24 +59,26 @@ fn generate_collator_service(collator: &Collator) -> Result<String> {
     ports:"#,
         name,
         name,
-        collator.docker_file()?
+        node.docker_file()?
     );
 
-    map_ports(collator)
+    map_ports(node)
         .into_iter()
         .for_each(|port| service.push_str(&format!("\n      {}", port)));
 
     service.push_str(&format!(
         "\n    restart: on-failure\n    command: {}",
-        collator.as_command_external()?
+        node.as_command_external()?
     ));
 
     Ok(service)
 }
 
-fn map_ports(collator: &Collator) -> Vec<String> {
-    collator
-        .ports()
+fn map_ports<N>(node: &N) -> Vec<String>
+where
+    N: Node,
+{
+    node.ports()
         .into_iter()
         .flatten()
         .zip(INTERNAL_PORTS)
