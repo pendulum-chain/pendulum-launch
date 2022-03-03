@@ -109,7 +109,7 @@ impl Node for BaseNode {
 
     #[inline]
     fn ports(&self) -> Vec<Option<u16>> {
-        vec![self.port.into(), self.ws_port.into(), self.rpc_port.into()]
+        vec![self.port.into(), self.ws_port.into(), self.rpc_port]
     }
 
     fn docker_file(&self) -> Result<String> {

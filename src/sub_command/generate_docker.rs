@@ -26,7 +26,7 @@ services:"#,
     Ok(docker_compose)
 }
 
-fn write_service<N>(docker_compose: &mut String, nodes: &Vec<N>) -> Result<()>
+fn write_service<N>(docker_compose: &mut String, nodes: &[N]) -> Result<()>
 where
     N: Node + AsCommand,
 {

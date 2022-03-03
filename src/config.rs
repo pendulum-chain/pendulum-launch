@@ -49,7 +49,7 @@ impl Config {
     pub fn ensure_unique_ports(&self) -> Result<()> {
         let mut ports: HashSet<u16> = HashSet::new();
 
-        fn check_single_node(ports: &mut HashSet<u16>, node: &impl Node) -> Result<()> {
+        fn check_node(ports: &mut HashSet<u16>, node: &impl Node) -> Result<()> {
             node.ports()
                 .iter()
                 .flatten()
@@ -62,16 +62,10 @@ impl Config {
                 })
         }
 
-        self.validators
-            .iter()
-            .map(|n| check_single_node(&mut ports, n))
-            .collect::<Result<()>>()?;
+        let check_validator = |v| check_node(&mut ports, v);
+        self.validators.iter().try_for_each(check_validator)?;
 
-        self.collators
-            .iter()
-            .map(|n| check_single_node(&mut ports, n))
-            .collect::<Result<()>>()?;
-
-        Ok(())
+        let check_collator = |c| check_node(&mut ports, c);
+        self.collators.iter().try_for_each(check_collator)
     }
 }
