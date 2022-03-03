@@ -1,10 +1,10 @@
 use crate::{
     error::{Error, Result, SerdeError},
-    node::{Collator, Validator},
+    node::{Collator, Node, Validator},
     Task,
 };
 use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf};
+use std::{collections::HashSet, fs, path::PathBuf};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
@@ -44,5 +44,34 @@ impl Config {
         let validator_tasks = self.validators.iter().map(|v| v.create_task());
         let collator_tasks = self.collators.iter().map(|c| c.create_task());
         validator_tasks.chain(collator_tasks).collect()
+    }
+
+    pub fn ensure_unique_ports(&self) -> Result<()> {
+        let mut ports: HashSet<u16> = HashSet::new();
+
+        fn check_single_node(ports: &mut HashSet<u16>, node: &impl Node) -> Result<()> {
+            node.ports()
+                .iter()
+                .flatten()
+                .try_for_each(|p| match ports.contains(p) {
+                    true => Err(Error::PortInUse(*p)),
+                    false => {
+                        ports.insert(*p);
+                        Ok(())
+                    }
+                })
+        }
+
+        self.validators
+            .iter()
+            .map(|n| check_single_node(&mut ports, n))
+            .collect::<Result<()>>()?;
+
+        self.collators
+            .iter()
+            .map(|n| check_single_node(&mut ports, n))
+            .collect::<Result<()>>()?;
+
+        Ok(())
     }
 }

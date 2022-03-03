@@ -5,9 +5,6 @@ use crate::{
 };
 use std::fs;
 
-// Static ports exposed in the base image
-const INTERNAL_PORTS: [u16; 6] = [8844, 30344, 9944, 8855, 30355, 9955];
-
 pub fn generate_docker(config: Config, out_dir: String) -> Result<()> {
     let out_file = format!("{}/docker-compose.yml", out_dir);
     let contents = generate_contents(&config)?;
@@ -62,9 +59,7 @@ where
         node.docker_file()?
     );
 
-    map_ports(node)
-        .into_iter()
-        .for_each(|port| service.push_str(&format!("\n      {}", port)));
+    map_ports(node).for_each(|port| service.push_str(&format!("\n      {}", port)));
 
     service.push_str(&format!(
         "\n    restart: on-failure\n    command: {}",
@@ -74,14 +69,12 @@ where
     Ok(service)
 }
 
-fn map_ports<N>(node: &N) -> Vec<String>
+fn map_ports<N>(node: &N) -> impl Iterator<Item = String>
 where
     N: Node,
 {
     node.ports()
         .into_iter()
         .flatten()
-        .zip(INTERNAL_PORTS)
-        .map(|(outer_port, inner_port)| format!("- \"{}:{}\"", outer_port, inner_port))
-        .collect()
+        .map(|port| format!("- \"{}:{}\"", port, port))
 }

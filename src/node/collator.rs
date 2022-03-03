@@ -57,7 +57,6 @@ impl Node for Collator {
         &self.inner.name
     }
 
-
     fn args(&self) -> Result<Vec<String>> {
         let mut args = vec![
             "--collator".to_owned(),
@@ -86,14 +85,22 @@ impl Node for Collator {
     }
 
     fn ports(&self) -> Vec<Option<u16>> {
-        vec![
+        let mut ports = self.inner.ports();
+        ports.append(&mut vec![
+            self.relay.port.into(),
+            self.relay.ws_port.into(),
+            self.relay.rpc_port,
+        ]);
+
+        ports
+        /* vec![
             self.inner.port.into(),
             self.inner.ws_port.into(),
             self.inner.rpc_port,
             self.relay.port.into(),
             self.relay.ws_port.into(),
             self.relay.rpc_port,
-        ]
+        ] */
     }
 
     #[inline]

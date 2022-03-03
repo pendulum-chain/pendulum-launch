@@ -16,7 +16,7 @@
       "bin": "../polkadot/target/release/polkadot",
       "chain": "./specs/rococo-custom-2-raw.json",
       "args": ["--bob", "--base-path=/tmp/relay/bob"],
-      "port": 30344,
+      "port": 30343,
       "ws_port": 9945,
       "rpc_port": null
     }

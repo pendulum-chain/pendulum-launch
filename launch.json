@@ -24,7 +24,7 @@
                     "--enable-offchain-indexing",
                     "true"
                 ],
-                "port": 30344,
+                "port": 30343,
                 "ws_port": 8844,
                 "rpc_port": null
             },
