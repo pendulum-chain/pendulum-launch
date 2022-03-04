@@ -53,12 +53,9 @@ impl Config {
             node.ports()
                 .iter()
                 .flatten()
-                .try_for_each(|p| match ports.contains(p) {
-                    true => Err(Error::PortInUse(*p)),
-                    false => {
-                        ports.insert(*p);
-                        Ok(())
-                    }
+                .try_for_each(|p| match ports.insert(*p) {
+                    true => Ok(()),
+                    false => Err(Error::PortInUse(*p)),
                 })
         }
 
