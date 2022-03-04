@@ -10,6 +10,8 @@ pub enum Error {
     NoConfig,
     #[error("Must provide valid path")]
     InvalidPath,
+    #[error("Port {0} used more than once")]
+    PortInUse(u16),
     #[error("Uninitialized: {0}")]
     Uninitialized(String),
     #[error("Process failed: {0}")]

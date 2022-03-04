@@ -1,12 +1,9 @@
 use crate::{
     error::Result,
-    node::{AsCommand, Collator},
+    node::{AsCommand, Node},
     Config,
 };
 use std::fs;
-
-// Static ports exposed in the base image
-const INTERNAL_PORTS: [u16; 6] = [8844, 30344, 9944, 8855, 30355, 9955];
 
 pub fn generate_docker(config: Config, out_dir: String) -> Result<()> {
     let out_file = format!("{}/docker-compose.yml", out_dir);
@@ -23,19 +20,31 @@ fn generate_contents(config: &Config) -> Result<String> {
 services:"#,
     );
 
-    config
-        .collators
-        .iter()
-        .map(generate_collator_service)
-        .collect::<Result<Vec<String>>>()?
-        .into_iter()
-        .for_each(|service| docker_compose.push_str(&format!("\n{}", service)));
+    write_service(&mut docker_compose, &config.validators)?;
+    write_service(&mut docker_compose, &config.collators)?;
 
     Ok(docker_compose)
 }
 
-fn generate_collator_service(collator: &Collator) -> Result<String> {
-    let name = collator.name();
+fn write_service<N>(docker_compose: &mut String, nodes: &[N]) -> Result<()>
+where
+    N: Node + AsCommand,
+{
+    nodes
+        .iter()
+        .map(generate_service)
+        .collect::<Result<Vec<String>>>()?
+        .into_iter()
+        .for_each(|service| docker_compose.push_str(&format!("\n{}", service)));
+
+    Ok(())
+}
+
+fn generate_service<N>(node: &N) -> Result<String>
+where
+    N: Node + AsCommand,
+{
+    let name = node.name();
 
     let mut service = format!(
         r#"  {}:
@@ -47,27 +56,25 @@ fn generate_collator_service(collator: &Collator) -> Result<String> {
     ports:"#,
         name,
         name,
-        collator.docker_file()?
+        node.docker_file()?
     );
 
-    map_ports(collator)
-        .into_iter()
-        .for_each(|port| service.push_str(&format!("\n      {}", port)));
+    map_ports(node).for_each(|port| service.push_str(&format!("\n      {}", port)));
 
     service.push_str(&format!(
         "\n    restart: on-failure\n    command: {}",
-        collator.as_command_external()?
+        node.as_command_external()?
     ));
 
     Ok(service)
 }
 
-fn map_ports(collator: &Collator) -> Vec<String> {
-    collator
-        .ports()
+fn map_ports<N>(node: &N) -> impl Iterator<Item = String>
+where
+    N: Node,
+{
+    node.ports()
         .into_iter()
         .flatten()
-        .zip(INTERNAL_PORTS)
-        .map(|(outer_port, inner_port)| format!("- \"{}:{}\"", outer_port, inner_port))
-        .collect()
+        .map(|port| format!("- \"{}:{}\"", port, port))
 }

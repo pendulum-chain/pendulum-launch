@@ -65,6 +65,8 @@ impl App {
         }
 
         let mut config = deserialize_config(&self.0.config)?;
+        config.ensure_unique_ports()?;
+
         Launcher::new(&mut config, log)?.run()
     }
 
@@ -102,7 +104,9 @@ impl App {
 
     fn generate_docker(&self, out_dir: Option<PathBuf>) -> Result<()> {
         let config = deserialize_config(&self.0.config)?;
+        config.ensure_unique_ports()?;
         let out_dir = util::path_to_string(&out_dir.unwrap_or(util::locate_project_root()?))?;
+
         sub_command::generate_docker(config, out_dir)
     }
 }

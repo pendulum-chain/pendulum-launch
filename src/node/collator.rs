@@ -1,4 +1,4 @@
-use super::{AsCommand, Node};
+use super::{AsCommand, BaseNode, Node};
 use crate::{error::Result, util, PathBuffer, Task};
 use serde::{Deserialize, Serialize};
 use std::process;
@@ -33,45 +33,31 @@ impl CollatorRelay {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Collator {
-    inner: Node,
+    inner: BaseNode,
     relay: CollatorRelay,
 }
 
 impl Collator {
     #[inline]
-    pub fn new(inner: Node, relay: CollatorRelay) -> Self {
+    pub fn new(inner: BaseNode, relay: CollatorRelay) -> Self {
         Self { inner, relay }
     }
 
     pub fn create_task(&self) -> Result<Task> {
         let mut command = self.inner.as_command_internal()?;
-        command.args(self.get_args()?);
+        command.args(self.args()?);
 
         Ok(Task::new(command))
     }
+}
 
+impl Node for Collator {
     #[inline]
-    pub fn name(&self) -> &str {
+    fn name(&self) -> &str {
         &self.inner.name
     }
 
-    #[inline]
-    pub fn docker_file(&self) -> Result<String> {
-        self.inner.docker_file()
-    }
-
-    pub fn ports(&self) -> [Option<u16>; 6] {
-        [
-            self.inner.port.into(),
-            self.inner.ws_port.into(),
-            self.inner.rpc_port,
-            self.relay.port.into(),
-            self.relay.ws_port.into(),
-            self.relay.rpc_port,
-        ]
-    }
-
-    fn get_args(&self) -> Result<Vec<String>> {
+    fn args(&self) -> Result<Vec<String>> {
         let mut args = vec![
             "--collator".to_owned(),
             "--".to_owned(),
@@ -97,12 +83,36 @@ impl Collator {
 
         Ok(args)
     }
+
+    fn ports(&self) -> Vec<Option<u16>> {
+        let mut ports = self.inner.ports();
+        ports.append(&mut vec![
+            self.relay.port.into(),
+            self.relay.ws_port.into(),
+            self.relay.rpc_port,
+        ]);
+
+        ports
+        /* vec![
+            self.inner.port.into(),
+            self.inner.ws_port.into(),
+            self.inner.rpc_port,
+            self.relay.port.into(),
+            self.relay.ws_port.into(),
+            self.relay.rpc_port,
+        ] */
+    }
+
+    #[inline]
+    fn docker_file(&self) -> Result<String> {
+        self.inner.docker_file()
+    }
 }
 
 impl AsCommand for Collator {
     fn as_command_internal(&self) -> Result<process::Command> {
         let mut command = self.inner.as_command_internal()?;
-        command.args(self.get_args()?);
+        command.args(self.args()?);
 
         Ok(command)
     }
@@ -110,7 +120,7 @@ impl AsCommand for Collator {
     fn as_command_external(&self) -> Result<String> {
         let mut command = self.inner.as_command_external()?;
         command.push(' ');
-        command.push_str(&self.get_args()?.join(" "));
+        command.push_str(&self.args()?.join(" "));
 
         Ok(command)
     }
