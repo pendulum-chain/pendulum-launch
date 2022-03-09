@@ -88,4 +88,4 @@ OPTIONS:
     -o, --outdir <outdir>
 ```
 
-[gitbook]: https://app.gitbook.com/o/axoDOM7fvGlVLdMc0tdk/s/JPteeI8zaYldKmZxPrYG/build/using-pendulum-launch``
+[gitbook]: https://app.gitbook.com/o/axoDOM7fvGlVLdMc0tdk/s/JPteeI8zaYldKmZxPrYG/build/using-pendulum-launch
