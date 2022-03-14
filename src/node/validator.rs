@@ -37,6 +37,11 @@ impl Node for Validator {
         self.as_ref().ports()
     }
 
+    #[inline]
+    fn specs(&self) -> Result<Vec<String>> {
+        Ok(vec![self.0.chain.to_string()?])
+    }
+
     fn docker_file(&self) -> Result<String> {
         self.0.docker_file()
     }

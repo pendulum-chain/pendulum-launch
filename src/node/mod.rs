@@ -16,6 +16,7 @@ pub trait Node {
     fn name(&self) -> &str;
     fn args(&self) -> Result<Vec<String>>;
     fn ports(&self) -> Vec<Option<u16>>;
+    fn specs(&self) -> Result<Vec<String>>;
     fn docker_file(&self) -> Result<String>;
 }
 
@@ -110,6 +111,11 @@ impl Node for BaseNode {
     #[inline]
     fn ports(&self) -> Vec<Option<u16>> {
         vec![self.port.into(), self.ws_port.into(), self.rpc_port]
+    }
+
+    #[inline]
+    fn specs(&self) -> Result<Vec<String>> {
+        Ok(vec![self.chain.to_string()?])
     }
 
     fn docker_file(&self) -> Result<String> {

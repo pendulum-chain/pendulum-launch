@@ -93,14 +93,14 @@ impl Node for Collator {
         ]);
 
         ports
-        /* vec![
-            self.inner.port.into(),
-            self.inner.ws_port.into(),
-            self.inner.rpc_port,
-            self.relay.port.into(),
-            self.relay.ws_port.into(),
-            self.relay.rpc_port,
-        ] */
+    }
+
+    #[inline]
+    fn specs(&self) -> Result<Vec<String>> {
+        Ok(vec![
+            self.inner.chain.to_string()?,
+            self.relay.chain.to_string()?,
+        ])
     }
 
     #[inline]

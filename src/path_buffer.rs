@@ -1,3 +1,4 @@
+use crate::error::{Error, Result};
 use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
@@ -15,6 +16,13 @@ pub struct PathBuffer(PathBuf);
 impl PathBuffer {
     pub fn to_str(&self) -> Option<&str> {
         self.0.to_str()
+    }
+
+    pub fn to_string(&self) -> Result<String> {
+        match self.to_str() {
+            Some(str) => Ok(str.to_owned()),
+            None => Err(Error::InvalidPath),
+        }
     }
 
     pub fn as_os_str(&self) -> &OsStr {
@@ -57,7 +65,7 @@ impl<'de> Visitor<'de> for PathBufferVisitor {
         f.write_str("a valid path string")
     }
 
-    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+    fn visit_str<E>(self, value: &str) -> std::result::Result<Self::Value, E>
     where
         E: de::Error,
     {
@@ -66,7 +74,7 @@ impl<'de> Visitor<'de> for PathBufferVisitor {
 }
 
 impl<'de> Deserialize<'de> for PathBuffer {
-    fn deserialize<D>(deserializer: D) -> Result<PathBuffer, D::Error>
+    fn deserialize<D>(deserializer: D) -> std::result::Result<PathBuffer, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -76,7 +84,7 @@ impl<'de> Deserialize<'de> for PathBuffer {
 
 // TODO: Implement proper error handling for custom serializers
 impl Serialize for PathBuffer {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
