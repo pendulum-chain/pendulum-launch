@@ -82,17 +82,11 @@ impl<'de> Deserialize<'de> for PathBuffer {
     }
 }
 
-// TODO: Implement proper error handling for custom serializers
 impl Serialize for PathBuffer {
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        serializer.serialize_str(self.to_str().unwrap_or("FAILED"))
-
-        // match self.to_str() {
-        //     Some(val) => serializer.serialize_str(val),
-        //     None => SerdeError::Serialize("{:?}", *self.0),
-        // }
+        serializer.serialize_str(self.to_str().unwrap())
     }
 }

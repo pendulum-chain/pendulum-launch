@@ -80,6 +80,9 @@ where
 }
 
 // Returns a list of unique chain-spec raw paths
+//
+// TODO: remove Unusued anotation
+#[allow(unused)]
 fn get_unique_specs(validators: Vec<&Validator>, collators: Vec<&Collator>) -> Result<Vec<String>> {
     let mut specs: HashSet<String> = HashSet::new();
 
