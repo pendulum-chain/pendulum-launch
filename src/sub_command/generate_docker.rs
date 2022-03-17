@@ -1,29 +1,105 @@
 use crate::{
     error::Result,
-    node::{AsCommand, Collator, Node, Validator},
+    node::{AsCommand, Node},
+    task::Task,
     Config,
 };
+use nix::unistd::Uid;
 use std::{collections::HashSet, fs};
 
-pub fn generate_docker(config: Config, out_dir: String) -> Result<()> {
-    let out_file = format!("{}/docker-compose.yml", out_dir);
-    let contents = generate_contents(&config)?;
-    fs::write(out_file, contents)?;
-
-    Ok(())
+pub struct GenerateDocker {
+    config: Config,
+    out_dir: String,
+    enable_volume: bool,
 }
 
-fn generate_contents(config: &Config) -> Result<String> {
-    let mut docker_compose = String::from(
-        r#"version: "3.2"
+impl GenerateDocker {
+    pub fn new(config: Config, out_dir: String, enable_volume: bool) -> Self {
+        Self {
+            config,
+            out_dir,
+            enable_volume,
+        }
+    }
+
+    pub fn execute(self) -> Result<()> {
+        if self.enable_volume && !Uid::effective().is_root() {
+            panic!("You must have root permissions to enable a shared docker volume");
+        }
+
+        let out_file = format!("{}/docker-compose.yml", self.out_dir);
+        let contents = self.generate_contents()?;
+        fs::write(out_file, contents)?;
+
+        Ok(())
+    }
+
+    fn generate_contents(self) -> Result<String> {
+        let mut docker_compose = String::from(
+            r#"version: "3.2"
 
 services:"#,
-    );
+        );
 
-    write_service(&mut docker_compose, &config.validators)?;
-    write_service(&mut docker_compose, &config.collators)?;
+        write_service(&mut docker_compose, &self.config.validators)?;
+        write_service(&mut docker_compose, &self.config.collators)?;
 
-    Ok(docker_compose)
+        Ok(docker_compose)
+    }
+
+    fn populate_volume(self) -> Result<()> {
+        let container = "temp";
+
+        // Create volume if it doesn't exist
+        Task::from(format!("sudo docker volume create {}", container)).execute()?;
+
+        // Run an intermediary container with the mounted volume
+        Task::from(format!(
+            "sudo docker run -it -v {}:/specs --name {} ubuntu",
+            container, container
+        ))
+        .execute()?;
+
+        // Copy the specs to the mounted volume in the container
+        for spec in self.get_unique_specs()? {
+            Task::from(format!(
+                "sudo docker cp {} {}:/specs/{}",
+                spec, container, spec
+            ))
+            .execute()?;
+        }
+
+        // Stop the intermediary container
+        Task::from(format!("sudo docker stop {}", container)).execute()?;
+
+        Ok(())
+    }
+
+    // Returns a list of unique chain-spec raw paths
+    fn get_unique_specs(self) -> Result<Vec<String>> {
+        let mut specs: HashSet<String> = HashSet::new();
+
+        fn insert_specs(specs: &mut HashSet<String>, node: &impl Node) -> Result<()> {
+            for spec in node.specs()? {
+                specs.insert(spec);
+            }
+
+            Ok(())
+        }
+
+        self.config
+            .validators
+            .iter()
+            .try_for_each(|v| insert_specs(&mut specs, v))?;
+
+        // let insert_collator_specs = |c| insert_specs(&mut specs, c);
+        self.config
+            .collators
+            .iter()
+            .try_for_each(|c| insert_specs(&mut specs, c))?;
+
+        Ok(Vec::from_iter(specs))
+    }
 }
 
 fn write_service<N>(docker_compose: &mut String, nodes: &[N]) -> Result<()>
@@ -77,31 +153,4 @@ where
         .into_iter()
         .flatten()
         .map(|port| format!("- \"{}:{}\"", port, port))
-}
-
-// Returns a list of unique chain-spec raw paths
-//
-// TODO: remove Unusued anotation
-#[allow(unused)]
-fn get_unique_specs(validators: Vec<&Validator>, collators: Vec<&Collator>) -> Result<Vec<String>> {
-    let mut specs: HashSet<String> = HashSet::new();
-
-    fn insert_specs(specs: &mut HashSet<String>, node: &impl Node) -> Result<()> {
-        for spec in node.specs()? {
-            specs.insert(spec);
-        }
-
-        Ok(())
-    }
-
-    validators
-        .into_iter()
-        .try_for_each(|v| insert_specs(&mut specs, v))?;
-
-    // let insert_collator_specs = |c| insert_specs(&mut specs, c);
-    collators
-        .into_iter()
-        .try_for_each(|c| insert_specs(&mut specs, c))?;
-
-    Ok(Vec::from_iter(specs))
 }

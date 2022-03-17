@@ -29,6 +29,8 @@ pub enum Command {
     GenerateDocker {
         #[structopt(short, long, parse(from_os_str), about = "Alternate output directory")]
         outdir: Option<PathBuf>,
+        #[structopt(long, about = "Enable a shared docker volume for chain specs")]
+        enable_volume: bool,
     },
 }
 
