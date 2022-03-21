@@ -153,7 +153,7 @@ services:"#,
         // Mounts shared volume if `--enable-volume` is passed
         service.push_str(&format!(
             "\n    restart: on-failure\n    command: {}",
-            node.as_command_external()?
+            node.as_command_external(self.enable_volume)?
         ));
 
         Ok(service)

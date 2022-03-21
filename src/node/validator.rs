@@ -55,8 +55,8 @@ impl AsCommand for Validator {
         Ok(command)
     }
 
-    fn as_command_external(&self) -> Result<String> {
-        let mut command = self.as_ref().as_command_external()?;
+    fn as_command_external(&self, docker_volume: bool) -> Result<String> {
+        let mut command = self.as_ref().as_command_external(docker_volume)?;
         command.push(' ');
         command.push_str(&self.args()?.join(" "));
 

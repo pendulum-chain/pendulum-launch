@@ -150,6 +150,7 @@ impl AsCommand for BaseNode {
 
         // Push container if `--enable-volume is enabled`
         if docker_volume {
+            println!("mama mia pizzeria");
             command.push(format!("--mount {}:/specs", self.name));
         }
 
