@@ -1,0 +1,40 @@
+version: "3.2"
+
+services:
+  validator_node:
+    container_name: validator_node 
+    image: pendulumchain/pendulum:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "30343:30343"
+      - "9944:9944"
+    restart: on-failure
+    command: ./bin/polkadot --name validator_node --chain ./specs/rococo-custom-2-raw.json --port 30343 --ws-port 9944 --validator
+  glitch-princess-1:
+    container_name: glitch-princess-1 
+    image: pendulumchain/pendulum:latest
+    build:
+      context: .
+      dockerfile: ./tmp/Dockerfile
+    ports:
+      - "30344:30344"
+      - "8844:8844"
+      - "30345:30345"
+      - "9955:9955"
+    restart: on-failure
+    command: ./bin/pendulum-collator --force-authoring --enable-offchain-indexing true --name glitch-princess-1 --chain ./specs/rococo-local-parachain-raw.json --port 30344 --ws-port 8844 --collator -- --chain ./specs/rococo-custom-2-raw.json --port 30345 --ws-port 9955 --force-authoring
+  glitch-princess-2:
+    container_name: glitch-princess-2 
+    image: pendulumchain/pendulum:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "30346:30346"
+      - "8846:8846"
+      - "30347:30347"
+      - "9957:9957"
+    restart: on-failure
+    command: ./bin/pendulum-collator --force-authoring --enable-offchain-indexing true --name glitch-princess-2 --chain ./specs/rococo-local-parachain-raw.json --port 30346 --ws-port 8846 --collator -- --chain ./specs/rococo-custom-2-raw.json --port 30347 --ws-port 9957 --force-authoring

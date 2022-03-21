@@ -22,7 +22,8 @@ pub trait Node {
 
 pub trait AsCommand {
     fn as_command_internal(&self) -> Result<process::Command>;
-    fn as_command_external(&self) -> Result<String>;
+    // TODO: move docker_volume flag into cli
+    fn as_command_external(&self, docker_volume: bool) -> Result<String>;
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -143,9 +144,14 @@ impl AsCommand for BaseNode {
         Ok(command)
     }
 
-    fn as_command_external(&self) -> Result<String> {
+    fn as_command_external(&self, docker_volume: bool) -> Result<String> {
         let mut command = vec![util::path_to_string(self.bin.as_ref())?];
         command.append(self.args()?.as_mut());
+
+        // Push container if `--enable-volume is enabled`
+        if docker_volume {
+            command.push(format!("--mount {}:/specs", self.name));
+        }
 
         Ok(command.join(" "))
     }
