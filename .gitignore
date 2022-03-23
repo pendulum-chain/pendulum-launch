@@ -3,3 +3,7 @@
 /target
 /tmp
 /crates
+
+.dockerignore
+docker-compose.yml
+Dockerfile

@@ -37,6 +37,11 @@ impl Node for Validator {
         self.as_ref().ports()
     }
 
+    #[inline]
+    fn specs(&self) -> Result<Vec<String>> {
+        Ok(vec![self.0.chain.to_string()?])
+    }
+
     fn docker_file(&self) -> Result<String> {
         self.0.docker_file()
     }
@@ -50,8 +55,8 @@ impl AsCommand for Validator {
         Ok(command)
     }
 
-    fn as_command_external(&self) -> Result<String> {
-        let mut command = self.as_ref().as_command_external()?;
+    fn as_command_external(&self, docker_volume: bool) -> Result<String> {
+        let mut command = self.as_ref().as_command_external(docker_volume)?;
         command.push(' ');
         command.push_str(&self.args()?.join(" "));
 

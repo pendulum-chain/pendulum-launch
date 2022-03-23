@@ -1,17 +1,17 @@
 use crate::error::Result;
 use std::{
     cell::RefCell,
-    process::{self, ExitStatus},
+    process::{self, Command, ExitStatus},
 };
 
 #[derive(Debug)]
 pub struct Task {
-    command: process::Command,
+    command: Command,
     handle: RefCell<Option<process::Child>>,
 }
 
 impl Task {
-    pub const fn new(command: process::Command) -> Self {
+    pub const fn new(command: Command) -> Self {
         Self {
             command,
             handle: RefCell::new(None),
@@ -43,5 +43,11 @@ impl Task {
         }
 
         Ok(())
+    }
+}
+
+impl From<String> for Task {
+    fn from(command: String) -> Self {
+        Self::new(Command::new(command))
     }
 }

@@ -16,12 +16,14 @@ pub trait Node {
     fn name(&self) -> &str;
     fn args(&self) -> Result<Vec<String>>;
     fn ports(&self) -> Vec<Option<u16>>;
+    fn specs(&self) -> Result<Vec<String>>;
     fn docker_file(&self) -> Result<String>;
 }
 
 pub trait AsCommand {
     fn as_command_internal(&self) -> Result<process::Command>;
-    fn as_command_external(&self) -> Result<String>;
+    // TODO: move docker_volume flag into cli
+    fn as_command_external(&self, docker_volume: bool) -> Result<String>;
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -112,6 +114,11 @@ impl Node for BaseNode {
         vec![self.port.into(), self.ws_port.into(), self.rpc_port]
     }
 
+    #[inline]
+    fn specs(&self) -> Result<Vec<String>> {
+        Ok(vec![self.chain.to_string()?])
+    }
+
     fn docker_file(&self) -> Result<String> {
         match &self.dockerfile {
             Some(path) => util::path_to_string(path.as_ref()),
@@ -137,9 +144,15 @@ impl AsCommand for BaseNode {
         Ok(command)
     }
 
-    fn as_command_external(&self) -> Result<String> {
+    fn as_command_external(&self, docker_volume: bool) -> Result<String> {
         let mut command = vec![util::path_to_string(self.bin.as_ref())?];
         command.append(self.args()?.as_mut());
+
+        // Push container if `--enable-volume is enabled`
+        if docker_volume {
+            println!("mama mia pizzeria");
+            command.push(format!("--mount {}:/specs", self.name));
+        }
 
         Ok(command.join(" "))
     }

@@ -1,7 +1,10 @@
 use crate::error::{Error, Result};
-use std::path::{Path, PathBuf};
-use std::process::Output;
-use std::{env, process};
+use nix::unistd::Uid;
+use std::{
+    path::{Path, PathBuf},
+    process::Output,
+    {env, process},
+};
 
 // Aquires the rust project root where the binary is being executed
 pub fn locate_project_root() -> Result<PathBuf> {
@@ -27,6 +30,10 @@ pub fn locate_project_root() -> Result<PathBuf> {
         });
 
     Ok(PathBuf::from(root))
+}
+
+pub fn is_root() -> bool {
+    Uid::effective().is_root()
 }
 
 pub fn ensure_success(output: &Output) -> Result<()> {

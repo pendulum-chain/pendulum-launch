@@ -93,14 +93,14 @@ impl Node for Collator {
         ]);
 
         ports
-        /* vec![
-            self.inner.port.into(),
-            self.inner.ws_port.into(),
-            self.inner.rpc_port,
-            self.relay.port.into(),
-            self.relay.ws_port.into(),
-            self.relay.rpc_port,
-        ] */
+    }
+
+    #[inline]
+    fn specs(&self) -> Result<Vec<String>> {
+        Ok(vec![
+            self.inner.chain.to_string()?,
+            self.relay.chain.to_string()?,
+        ])
     }
 
     #[inline]
@@ -117,8 +117,8 @@ impl AsCommand for Collator {
         Ok(command)
     }
 
-    fn as_command_external(&self) -> Result<String> {
-        let mut command = self.inner.as_command_external()?;
+    fn as_command_external(&self, docker_volume: bool) -> Result<String> {
+        let mut command = self.inner.as_command_external(docker_volume)?;
         command.push(' ');
         command.push_str(&self.args()?.join(" "));
 
