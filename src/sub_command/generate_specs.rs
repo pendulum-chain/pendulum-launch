@@ -1,5 +1,5 @@
-use crate::error::{Error, Result};
 use crate::util;
+use crate::{Error, Result};
 use json::JsonValue;
 use std::{fs, process};
 

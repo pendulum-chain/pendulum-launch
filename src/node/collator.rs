@@ -1,4 +1,4 @@
-use super::{AsCommand, BaseNode, Node};
+use super::{base::BaseNode, AsCommand, Node};
 use crate::{error::Result, util, PathBuffer, Task};
 use serde::{Deserialize, Serialize};
 use std::process;
@@ -54,7 +54,7 @@ impl Collator {
 impl Node for Collator {
     #[inline]
     fn name(&self) -> &str {
-        &self.inner.name
+        self.inner.name()
     }
 
     fn args(&self) -> Result<Vec<String>> {
@@ -98,7 +98,7 @@ impl Node for Collator {
     #[inline]
     fn specs(&self) -> Result<Vec<String>> {
         Ok(vec![
-            self.inner.chain.to_string()?,
+            self.inner.chain().to_string()?,
             self.relay.chain.to_string()?,
         ])
     }

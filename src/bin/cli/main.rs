@@ -3,7 +3,7 @@ mod app;
 mod opt;
 
 use app::App;
-use lib_pendulum_launch::error::Result;
+use lib_pendulum_launch::Result;
 use opt::Options;
 
 fn main() -> Result<()> {

@@ -15,7 +15,10 @@ pub struct GenerateDocker {
 
 impl GenerateDocker {
     pub fn new(config: Config, out_dir: String, enable_volume: bool) -> Self {
-        let name = config.name.clone().unwrap_or("pendulum-launch".to_owned());
+        let name = config
+            .name
+            .clone()
+            .unwrap_or_else(|| "pendulum-launch".to_owned());
 
         Self {
             name,
@@ -146,7 +149,7 @@ services:"#,
 
         // Mounts shared volume to each node
         if self.enable_volume {
-            service.push_str(format!(r#"\n    volumes:"#).as_str());
+            service.push_str(r#"\n    volumes:"#);
             service.push_str(format!(r#"\n      - {}:/specs"#, self.name.as_str()).as_str());
         }
 

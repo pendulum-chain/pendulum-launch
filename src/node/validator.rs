@@ -1,4 +1,4 @@
-use super::{AsCommand, BaseNode, Node};
+use super::{base::BaseNode, AsCommand, Node};
 use crate::{error::Result, Task};
 use serde::{Deserialize, Serialize};
 use std::process;
@@ -39,7 +39,7 @@ impl Node for Validator {
 
     #[inline]
     fn specs(&self) -> Result<Vec<String>> {
-        Ok(vec![self.0.chain.to_string()?])
+        Ok(vec![self.0.chain().to_string()?])
     }
 
     fn docker_file(&self) -> Result<String> {

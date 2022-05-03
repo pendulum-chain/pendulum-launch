@@ -1,4 +1,4 @@
-use crate::error::Result;
+use crate::Result;
 use std::{
     cell::RefCell,
     process::{self, Command, ExitStatus},

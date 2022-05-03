@@ -2,7 +2,7 @@
 #![allow(clippy::too_many_arguments)]
 
 mod config;
-pub mod error;
+mod error;
 mod launcher;
 pub mod node;
 mod path_buffer;
@@ -11,6 +11,7 @@ mod task;
 pub mod util;
 
 pub use config::Config;
+pub use error::{Error, Result};
 pub use launcher::Launcher;
 pub use path_buffer::PathBuffer;
 pub(crate) use task::Task;

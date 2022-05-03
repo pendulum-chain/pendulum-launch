@@ -1,7 +1,6 @@
 use crate::{opt::Command, Options};
 use lib_pendulum_launch::{
-    error::{Error, Result},
-    sub_command, util, Config, Launcher,
+    sub_command, util, Config, Launcher, {Error, Result},
 };
 use std::{
     fs::{self, DirEntry},
