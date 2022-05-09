@@ -10,7 +10,7 @@ use std::{
 };
 
 /// A wrapper around PathBuf for extended impl
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PathBuffer(PathBuf);
 
 impl PathBuffer {

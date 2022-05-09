@@ -13,14 +13,30 @@ pub struct CollatorRelay {
 }
 
 impl CollatorRelay {
+    // pub fn new(
+    //     chain: &str,
+    //     args: Option<Vec<String>>,
+    //     port: u16,
+    //     ws_port: u16,
+    //     rpc_port: Option<u16>,
+    // ) -> Self {
+    //     let chain = PathBuffer::from(chain);
+    //     Self {
+    //         chain,
+    //         args,
+    //         port,
+    //         ws_port,
+    //         rpc_port,
+    //     }
+    // }
+
     pub fn new(
-        chain: &str,
+        chain: PathBuffer,
         args: Option<Vec<String>>,
         port: u16,
         ws_port: u16,
         rpc_port: Option<u16>,
     ) -> Self {
-        let chain = PathBuffer::from(chain);
         Self {
             chain,
             args,

@@ -36,7 +36,6 @@ pub enum Command {
 
 #[derive(Debug, StructOpt)]
 #[structopt()]
-#[allow(unused)]
 pub struct Options {
     #[structopt(short, long, parse(from_os_str), about = "Alternate config path")]
     pub config: Option<PathBuf>,

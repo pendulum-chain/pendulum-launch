@@ -1,0 +1,67 @@
+{
+    "name": "Pendulum",
+    "author": "xiuxiu",
+    "validator": {
+        "bin": "./bin/polkadot",
+        "dockerfile": "./tmp/Dockerfile",
+        "nodes": [
+            {
+                "name": "validator_node",
+                "chain": "./examples/specs/rococo-custom-2-raw.json",
+                "args": [],
+                "port": 30343,
+                "ws_port": 9944,
+                "rpc_port": null
+            }           
+        ]
+    },
+    "collator": {
+        "bin": "./bin/pendulum-collator",
+        "dockerfile": "./tmp/Dockerfile",
+        "nodes": [
+            {
+                "name": "glitch-princess-1",
+                "chain": "./examples/specs/rococo-local-parachain-raw.json",
+                "args": [
+                    "--force-authoring",
+                    "--enable-offchain-indexing",
+                    "true"
+                ],
+                "port": 30344,
+                "ws_port": 8844,
+                "rpc_port": null,
+                "relay": {
+                    "chain": "./specs/rococo-custom-2-raw.json",
+                    "args": [
+                        "--force-authoring"
+                    ],
+                    "port": 30345,
+                    "ws_port": 9955,
+                    "rpc_port": null
+                }
+            },
+            {
+                "name": "glitch-princess-2",
+                "bin": "./bin/pendulum-collator",
+                "chain": "./examples/specs/rococo-local-parachain-raw.json",
+                "args": [
+                    "--force-authoring",
+                    "--enable-offchain-indexing",
+                    "true"
+                ],
+                "port": 30346,
+                "ws_port": 8846,
+                "rpc_port": null,
+                "relay": {
+                    "chain": "./specs/rococo-custom-2-raw.json",
+                    "args": [
+                        "--force-authoring"
+                    ],
+                    "port": 30347,
+                    "ws_port": 9957,
+                    "rpc_port": null
+                }
+            }
+        ]
+    }
+}

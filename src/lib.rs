@@ -1,5 +1,6 @@
 #![allow(clippy::mutex_atomic)]
 #![allow(clippy::too_many_arguments)]
+#![allow(clippy::from_over_into)]
 
 mod config;
 mod error;
