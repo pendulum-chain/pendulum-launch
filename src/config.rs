@@ -10,6 +10,7 @@ use std::{collections::HashSet, fs, path::PathBuf};
 pub struct Config {
     pub name: Option<String>,
     pub author: Option<String>,
+    pub mode: Option<String>,
     pub validators: Vec<Validator>,
     pub collators: Vec<Collator>,
 }
@@ -18,15 +19,18 @@ impl Config {
     pub fn new(
         name: Option<&str>,
         author: Option<&str>,
+        mode: Option<&str>,
         validators: Vec<Validator>,
         collators: Vec<Collator>,
     ) -> Self {
         let name = name.map(|name| name.to_string());
+        let mode = mode.map(|mode| mode.to_string());
         let author = author.map(|author| author.to_string());
 
         Self {
             name,
             author,
+            mode,
             validators,
             collators,
         }

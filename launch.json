@@ -1,6 +1,7 @@
 {
     "name": "Pendulum",
     "author": "xiuxiu",
+    "mode": "TestNet",
     "validators": [
         {
             "name": "validator_node",
