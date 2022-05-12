@@ -7,16 +7,16 @@ description = "A launcher for Pendulum and other substrate parachains"
 documentation = "https://app.gitbook.com/o/axoDOM7fvGlVLdMc0tdk/s/JPteeI8zaYldKmZxPrYG/build/using-pendulum-launch"
 license = "Unlicense"
 
-[[bin]]
-name = "pendulum-launch"
-path = "src/bin/cli/main.rs"
-
 [lib]
 name = "lib_pendulum_launch"
 path = "src/lib.rs"
 
+[[bin]]
+name = "pendulum-launch"
+path = "src/bin/cli/main.rs"
+
 [dependencies]
-ctrlc = { version = "3.2.1", features = [ "termination"], git = "https://github.com/xiuxiu62/rust-ctrlc.git" }
+ctrlc = { version = "3.2.1", features = ["termination"], git = "https://github.com/xiuxiu62/rust-ctrlc.git" }
 json = "0.12.4"
 lazy_static = "1.4.0"
 nix = "0.23.1"

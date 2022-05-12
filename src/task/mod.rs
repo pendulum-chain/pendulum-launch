@@ -1,8 +1,12 @@
-use crate::error::Result;
+use crate::Result;
 use std::{
     cell::RefCell,
     process::{self, Command, ExitStatus},
 };
+
+mod manager;
+
+pub use manager::TaskManager;
 
 #[derive(Debug)]
 pub struct Task {
@@ -27,11 +31,8 @@ impl Task {
     /// returning a handle
     pub fn spawn(&mut self) -> Result<()> {
         let handle = self.command.spawn()?;
-        // if self.log_path.is_some() {
-        //     self.init_logger()?;
-        // }
-
         self.handle.replace(Some(handle));
+
         Ok(())
     }
 

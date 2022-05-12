@@ -1,5 +1,5 @@
-use super::{AsCommand, BaseNode, Node};
-use crate::{error::Result, util, PathBuffer, Task};
+use super::{base::BaseNode, AsCommand, Node};
+use crate::{config::CollatorConfig, error::Result, util, PathBuffer, Task};
 use serde::{Deserialize, Serialize};
 use std::process;
 
@@ -14,13 +14,12 @@ pub struct CollatorRelay {
 
 impl CollatorRelay {
     pub fn new(
-        chain: &str,
+        chain: PathBuffer,
         args: Option<Vec<String>>,
         port: u16,
         ws_port: u16,
         rpc_port: Option<u16>,
     ) -> Self {
-        let chain = PathBuffer::from(chain);
         Self {
             chain,
             args,
@@ -51,10 +50,16 @@ impl Collator {
     }
 }
 
+impl From<CollatorConfig> for Collator {
+    fn from(collator_config: CollatorConfig) -> Self {
+        collator_config.into()
+    }
+}
+
 impl Node for Collator {
     #[inline]
     fn name(&self) -> &str {
-        &self.inner.name
+        self.inner.name()
     }
 
     fn args(&self) -> Result<Vec<String>> {
@@ -98,7 +103,7 @@ impl Node for Collator {
     #[inline]
     fn specs(&self) -> Result<Vec<String>> {
         Ok(vec![
-            self.inner.chain.to_string()?,
+            self.inner.chain().to_string()?,
             self.relay.chain.to_string()?,
         ])
     }

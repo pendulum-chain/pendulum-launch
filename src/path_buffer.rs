@@ -1,4 +1,4 @@
-use crate::error::{Error, Result};
+use crate::{Error, Result};
 use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
@@ -10,7 +10,7 @@ use std::{
 };
 
 /// A wrapper around PathBuf for extended impl
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PathBuffer(PathBuf);
 
 impl PathBuffer {

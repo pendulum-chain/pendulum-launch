@@ -1,9 +1,8 @@
-use super::{AsCommand, BaseNode, Node};
-use crate::{error::Result, Task};
-use serde::{Deserialize, Serialize};
+use super::{base::BaseNode, AsCommand, Node};
+use crate::{config::ValidatorConfig, error::Result, Task};
 use std::process;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug)]
 pub struct Validator(BaseNode);
 
 impl Validator {
@@ -24,6 +23,12 @@ impl AsRef<BaseNode> for Validator {
     }
 }
 
+impl From<ValidatorConfig> for Validator {
+    fn from(validator_config: ValidatorConfig) -> Self {
+        validator_config.into()
+    }
+}
+
 impl Node for Validator {
     fn name(&self) -> &str {
         self.as_ref().name()
@@ -39,7 +44,7 @@ impl Node for Validator {
 
     #[inline]
     fn specs(&self) -> Result<Vec<String>> {
-        Ok(vec![self.0.chain.to_string()?])
+        Ok(vec![self.0.chain().to_string()?])
     }
 
     fn docker_file(&self) -> Result<String> {
