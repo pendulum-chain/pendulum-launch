@@ -9,22 +9,6 @@ pub struct App {
 }
 
 impl App {
-    // pub fn new(options: Options) -> Result<Self> {
-    //     let (quiet, log) = (options.quiet, options.log.to_owned());
-    //     if quiet && log.is_some() {
-    //         return Err(Error::ProcessFailed(
-    //             "Cannot use `--quiet` and `--log <DIR>` together".to_string(),
-    //         ));
-    //     }
-
-    //     let mut config = deserialize_config(&options.config)?;
-    //     config.ensure_unique_ports()?;
-
-    //     let launcher = Launcher::new(&mut config, log)?;
-
-    //     Ok(Self { options, launcher })
-    // }
-
     pub fn from_args() -> Result<Self> {
         Self::try_from(Options::from_args())
     }
