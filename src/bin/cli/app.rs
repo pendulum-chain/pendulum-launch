@@ -1,23 +1,36 @@
 use crate::{opt::Command, util::deserialize_config, Options};
-use lib_pendulum_launch::{
-    sub_command, util, Launcher, {Error, Result},
-};
+use lib_pendulum_launch::{sub_command, util, Error, Launcher, Result};
 use std::path::PathBuf;
 use structopt::StructOpt;
 
-pub struct App(Options);
+pub struct App {
+    options: Options,
+    launcher: Launcher,
+}
 
 impl App {
-    pub fn new(options: Options) -> Self {
-        Self(options)
-    }
+    // pub fn new(options: Options) -> Result<Self> {
+    //     let (quiet, log) = (options.quiet, options.log.to_owned());
+    //     if quiet && log.is_some() {
+    //         return Err(Error::ProcessFailed(
+    //             "Cannot use `--quiet` and `--log <DIR>` together".to_string(),
+    //         ));
+    //     }
 
-    pub fn from_args() -> Self {
-        Self::new(Options::from_args())
+    //     let mut config = deserialize_config(&options.config)?;
+    //     config.ensure_unique_ports()?;
+
+    //     let launcher = Launcher::new(&mut config, log)?;
+
+    //     Ok(Self { options, launcher })
+    // }
+
+    pub fn from_args() -> Result<Self> {
+        Self::try_from(Options::from_args())
     }
 
     pub fn run(&mut self) -> Result<()> {
-        match &self.0.cmd {
+        match &self.options.cmd {
             Some(cmd) => match cmd {
                 Command::ExportGenesis {
                     collator_bin,
@@ -44,28 +57,12 @@ impl App {
                 Command::GenerateDocker {
                     outdir,
                     enable_volume,
-                } => self.generate_docker(outdir.to_owned(), *enable_volume)?,
+                } => self.generate_docker(outdir.to_owned(), enable_volume.to_owned())?,
             },
-            None => self.launch()?,
+            None => self.launcher.run()?,
         };
 
         Ok(())
-    }
-
-    /// Launche parachain and idle until the program receives a `SIGINT`
-    fn launch(&mut self) -> Result<()> {
-        let (quiet, log) = (self.0.quiet, self.0.log.to_owned());
-
-        if quiet && log.is_some() {
-            return Err(Error::ProcessFailed(
-                "Cannot use `--quiet` and `--log <DIR>` together".to_string(),
-            ));
-        }
-
-        let mut config = deserialize_config(&self.0.config)?;
-        config.ensure_unique_ports()?;
-
-        Launcher::new(&mut config, log)?.run()
     }
 
     /// Export genesis data to an `outdir` if provided or to the project root
@@ -101,11 +98,28 @@ impl App {
     }
 
     fn generate_docker(&self, out_dir: Option<PathBuf>, enable_volume: bool) -> Result<()> {
-        let config = deserialize_config(&self.0.config)?;
-        config.ensure_unique_ports()?;
         let out_dir = util::path_to_string(&out_dir.unwrap_or(util::locate_project_root()?))?;
+        let command = sub_command::GenerateDocker::new(&self.launcher, out_dir, enable_volume);
 
-        let command = sub_command::GenerateDocker::new(config, out_dir, enable_volume);
         command.execute()
+    }
+}
+
+impl TryFrom<Options> for App {
+    type Error = Error;
+
+    fn try_from(options: Options) -> Result<Self> {
+        let (quiet, log) = (options.quiet, options.log.to_owned());
+        if quiet && log.is_some() {
+            return Err(Error::ProcessFailed(
+                "Cannot use `--quiet` and `--log <DIR>` together".to_string(),
+            ));
+        }
+
+        let config = deserialize_config(&options.config)?;
+        let launcher = Launcher::new(config, log)?;
+        launcher.ensure_unique_ports()?;
+
+        Ok(Self { options, launcher })
     }
 }

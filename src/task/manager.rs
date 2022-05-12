@@ -1,14 +1,9 @@
-use crate::{Config, PathBuffer, Result, Task};
-use lazy_static::lazy_static;
+use super::Task;
+use crate::Result;
 use std::{
-    path::PathBuf,
-    sync::{Arc, Condvar, Mutex, RwLock},
+    sync::{Arc, Condvar, Mutex},
     time::{Duration, Instant},
 };
-
-lazy_static! {
-    pub(crate) static ref LOG_DIR: Arc<RwLock<Option<PathBuffer>>> = Arc::new(RwLock::new(None));
-}
 
 #[derive(Debug)]
 pub struct TaskManager {
@@ -18,14 +13,16 @@ pub struct TaskManager {
 
 impl<'a> TaskManager {
     #[inline]
-    pub fn new(tasks: Vec<Task>, log_dir: Option<PathBuf>) -> Self {
+    pub fn new(tasks: Vec<Task>) -> Self {
         Self {
             tasks,
             start_time: Instant::now(),
         }
     }
 
+    // TODO: periodically output uptime
     #[inline]
+    #[allow(unused)]
     pub fn uptime(&self) -> Duration {
         self.start_time.elapsed()
     }

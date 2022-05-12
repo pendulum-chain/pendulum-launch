@@ -1,9 +1,7 @@
 use super::{base::BaseNode, AsCommand, Node};
 use crate::{config::ValidatorConfig, error::Result, Task};
-// use serde::{Deserialize, Serialize};
 use std::process;
 
-// #[derive(Debug, Deserialize, Serialize)]
 #[derive(Debug)]
 pub struct Validator(BaseNode);
 

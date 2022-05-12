@@ -7,5 +7,5 @@ use lib_pendulum_launch::Result;
 use opt::Options;
 
 fn main() -> Result<()> {
-    App::from_args().run()
+    App::from_args()?.run()
 }

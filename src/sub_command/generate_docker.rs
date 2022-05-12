@@ -2,27 +2,27 @@ use crate::{
     error::Result,
     node::{AsCommand, Node},
     task::Task,
-    util, Config,
+    util, Launcher,
 };
 use std::{collections::HashSet, fs};
 
-pub struct GenerateDocker {
+pub struct GenerateDocker<'a> {
     name: String,
-    config: Config,
+    launcher: &'a Launcher,
     out_dir: String,
     enable_volume: bool,
 }
 
-impl GenerateDocker {
-    pub fn new(config: Config, out_dir: String, enable_volume: bool) -> Self {
-        let name = config
+impl<'a> GenerateDocker<'a> {
+    pub fn new(launcher: &'a Launcher, out_dir: String, enable_volume: bool) -> Self {
+        let name = launcher
             .name
             .clone()
             .unwrap_or_else(|| "pendulum-launch".to_owned());
 
         Self {
             name,
-            config,
+            launcher,
             out_dir,
             enable_volume,
         }
@@ -47,8 +47,8 @@ impl GenerateDocker {
 services:"#,
         );
 
-        self.write_service(&mut docker_compose, &self.config.validators)?;
-        self.write_service(&mut docker_compose, &self.config.collators)?;
+        self.write_service(&mut docker_compose, &self.launcher.validators)?;
+        self.write_service(&mut docker_compose, &self.launcher.collators)?;
 
         Ok(docker_compose)
     }
@@ -98,13 +98,13 @@ services:"#,
             Ok(())
         }
 
-        self.config
+        self.launcher
             .validators
             .iter()
             .try_for_each(|v| insert_specs(&mut specs, v))?;
 
         // let insert_collator_specs = |c| insert_specs(&mut specs, c);
-        self.config
+        self.launcher
             .collators
             .iter()
             .try_for_each(|c| insert_specs(&mut specs, c))?;
