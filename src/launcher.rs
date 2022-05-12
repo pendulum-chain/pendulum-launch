@@ -11,9 +11,24 @@ lazy_static! {
 }
 
 #[derive(Debug)]
+pub enum LauncherMode {
+    Local,
+    TestNet,
+}
+
+impl Default for LauncherMode {
+    fn default() -> Self {
+        LauncherMode::Local
+    }
+}
+
+#[derive(Debug)]
 pub struct Launcher {
     tasks: Vec<Task>,
     start_time: Instant,
+    //TODO: remove this
+    #[allow(dead_code)]
+    mode: LauncherMode,
 }
 impl<'a> Launcher {
     #[inline]
@@ -21,9 +36,19 @@ impl<'a> Launcher {
         // Initialize LOG_DIR
         *Arc::clone(&LOG_DIR).write()? = log_dir.map(PathBuffer::from);
 
+        let mut mode = LauncherMode::default();
+        if let Some(launcher_mode) = &config.mode {
+            mode = match launcher_mode.to_lowercase().as_str() {
+                "local" => LauncherMode::Local,
+                "testnet" => LauncherMode::TestNet,
+                _ => LauncherMode::default()
+            }
+        }
+
         Ok(Self {
             tasks: config.generate_tasks()?,
             start_time: Instant::now(),
+            mode,
         })
     }
 
