@@ -9,23 +9,28 @@ use std::{collections::HashSet, fs, path::PathBuf};
 mod collator;
 mod validator;
 
+pub use collator::CollatorConfig;
+pub use validator::ValidatorConfig;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     pub name: Option<String>,
     pub author: Option<String>,
-    pub validators: Vec<Validator>,
-    pub collators: Vec<Collator>,
+    pub validators: Vec<ValidatorConfig>,
+    pub collators: Vec<CollatorConfig>,
 }
 
 impl Config {
     pub fn new(
         name: Option<&str>,
         author: Option<&str>,
-        validators: Vec<Validator>,
-        collators: Vec<Collator>,
+        validators: Vec<ValidatorConfig>,
+        collators: Vec<CollatorConfig>,
     ) -> Self {
         let name = name.map(|name| name.to_string());
         let author = author.map(|author| author.to_string());
+        // let validators = validators.into_iter().map(|v| Validator::from(v)).collect();
+        // let collators = collators.into_iter().map(|c| Collator::from(c)).collect();
 
         Self {
             name,
@@ -44,8 +49,15 @@ impl Config {
     }
 
     pub fn generate_tasks(&mut self) -> Result<Vec<Task>> {
-        let validator_tasks = self.validators.iter().map(|v| v.create_task());
-        let collator_tasks = self.collators.iter().map(|c| c.create_task());
+        let validator_tasks = self
+            .validators
+            .iter()
+            .map(|v| Validator::from(*v).create_task());
+        let collator_tasks = self
+            .collators
+            .iter()
+            .map(|c| Collator::from(*c).create_task());
+
         validator_tasks.chain(collator_tasks).collect()
     }
 
@@ -63,9 +75,15 @@ impl Config {
         }
 
         let check_validator = |v| check_node(&mut ports, v);
-        self.validators.iter().try_for_each(check_validator)?;
+        self.validators
+            .iter()
+            .map(|v| &Validator::from(*v))
+            .try_for_each(check_validator)?;
 
         let check_collator = |c| check_node(&mut ports, c);
-        self.collators.iter().try_for_each(check_collator)
+        self.collators
+            .iter()
+            .map(|c| &Collator::from(*c))
+            .try_for_each(check_collator)
     }
 }

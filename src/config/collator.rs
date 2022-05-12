@@ -11,15 +11,6 @@ pub struct CollatorConfig {
     nodes: Vec<CollatorNodeConfig>,
 }
 
-// impl CollatorConfig {
-//     fn collator(&self, node: CollatorNodeConfig) -> Collator {
-//         let base_node = node.base_node(&self.bin, &self.dockerfile);
-//         let relay = node.relay();
-
-//         Collator::new(base_node, relay)
-//     }
-// }
-
 #[derive(Debug, Deserialize, Serialize)]
 struct CollatorNodeConfig {
     name: String,
@@ -61,25 +52,13 @@ impl CollatorNodeConfig {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct CollatorNodeRelayConfig {
+struct CollatorNodeRelayConfig {
     chain: PathBuffer,
     args: Option<Vec<String>>,
     port: u16,
     ws_port: u16,
     rpc_port: Option<u16>,
 }
-
-// impl CollatorNodeRelayConfig {
-//     fn relay(&self) -> CollatorRelay {
-//         CollatorRelay::new(
-//             self.chain.to_owned(),
-//             self.args.to_owned(),
-//             self.port.to_owned(),
-//             self.ws_port.to_owned(),
-//             self.rpc_port.to_owned(),
-//         )
-//     }
-// }
 
 impl Into<Vec<Collator>> for CollatorConfig {
     fn into(self) -> Vec<Collator> {

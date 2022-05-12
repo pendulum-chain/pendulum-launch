@@ -27,11 +27,8 @@ impl Task {
     /// returning a handle
     pub fn spawn(&mut self) -> Result<()> {
         let handle = self.command.spawn()?;
-        // if self.log_path.is_some() {
-        //     self.init_logger()?;
-        // }
-
         self.handle.replace(Some(handle));
+
         Ok(())
     }
 

@@ -11,21 +11,18 @@ lazy_static! {
 }
 
 #[derive(Debug)]
-pub struct Launcher {
+pub struct TaskManager {
     tasks: Vec<Task>,
     start_time: Instant,
 }
 
-impl<'a> Launcher {
+impl<'a> TaskManager {
     #[inline]
-    pub fn new(config: &mut Config, log_dir: Option<PathBuf>) -> Result<Self> {
-        // Initialize LOG_DIR
-        *Arc::clone(&LOG_DIR).write()? = log_dir.map(PathBuffer::from);
-
-        Ok(Self {
-            tasks: config.generate_tasks()?,
+    pub fn new(tasks: Vec<Task>, log_dir: Option<PathBuf>) -> Self {
+        Self {
+            tasks,
             start_time: Instant::now(),
-        })
+        }
     }
 
     #[inline]

@@ -21,35 +21,6 @@ pub struct BaseNode {
 }
 
 impl BaseNode {
-    // pub fn new(
-    //     name: Option<&str>,
-    //     bin: &str,
-    //     chain: &str,
-    //     dockerfile: Option<&str>,
-    //     args: Vec<&str>,
-    //     port: u16,
-    //     ws_port: u16,
-    //     rpc_port: Option<u16>,
-    // ) -> Self {
-    //     let name = match name {
-    //         Some(name) => name.to_owned(),
-    //         None => Self::create_name(bin, ws_port),
-    //     };
-
-    //     let args = args.into_iter().map(|arg| arg.to_owned()).collect();
-
-    //     Self {
-    //         name,
-    //         bin: PathBuffer::from(bin),
-    //         chain: PathBuffer::from(chain),
-    //         dockerfile: PathBuffer::maybe_from(dockerfile),
-    //         args,
-    //         port,
-    //         ws_port,
-    //         rpc_port,
-    //     }
-    // }
-
     pub fn new(
         name: String,
         bin: PathBuffer,
@@ -81,11 +52,6 @@ impl BaseNode {
     pub fn get_log_name(&self) -> Result<String> {
         Ok(format!("{}.log", self.name))
     }
-
-    // #[inline]
-    // fn create_name(bin: &str, ws_port: u16) -> String {
-    //     format!("{}-{}", bin, ws_port)
-    // }
 }
 
 impl Node for BaseNode {

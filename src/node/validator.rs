@@ -1,9 +1,10 @@
 use super::{base::BaseNode, AsCommand, Node};
-use crate::{error::Result, Task};
-use serde::{Deserialize, Serialize};
+use crate::{config::ValidatorConfig, error::Result, Task};
+// use serde::{Deserialize, Serialize};
 use std::process;
 
-#[derive(Debug, Deserialize, Serialize)]
+// #[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug)]
 pub struct Validator(BaseNode);
 
 impl Validator {
@@ -21,6 +22,12 @@ impl Validator {
 impl AsRef<BaseNode> for Validator {
     fn as_ref(&self) -> &BaseNode {
         &self.0
+    }
+}
+
+impl From<ValidatorConfig> for Validator {
+    fn from(validator_config: ValidatorConfig) -> Self {
+        validator_config.into()
     }
 }
 
