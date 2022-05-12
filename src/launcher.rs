@@ -15,9 +15,36 @@ lazy_static! {
 }
 
 #[derive(Debug)]
+pub enum LauncherMode {
+    Local,
+    TestNet,
+}
+
+impl Default for LauncherMode {
+    fn default() -> Self {
+        Self::Local
+    }
+}
+
+impl From<Option<String>> for LauncherMode {
+    fn from(mode: Option<String>) -> Self {
+        if let Some(value) = &mode {
+            return match value.to_lowercase().as_str() {
+                "local" => Self::Local,
+                "testnet" => Self::TestNet,
+                _ => Self::default(),
+            };
+        }
+
+        Self::default()
+    }
+}
+
+#[derive(Debug)]
 pub struct Launcher {
     pub name: Option<String>,
     pub author: Option<String>,
+    pub mode: LauncherMode,
     pub validators: Vec<Validator>,
     pub collators: Vec<Collator>,
 }
@@ -29,12 +56,14 @@ impl<'a> Launcher {
 
         let name = config.name.to_owned();
         let author = config.author.to_owned();
+        let mode = LauncherMode::from(config.mode);
         let validators = config.validators.into_iter().map(Validator::from).collect();
         let collators = config.collators.into_iter().map(Collator::from).collect();
 
         Ok(Self {
             name,
             author,
+            mode,
             validators,
             collators,
         })

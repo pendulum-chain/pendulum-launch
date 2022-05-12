@@ -1,6 +1,7 @@
 {
     "name": "Pendulum",
     "author": "xiuxiu",
+    "mode": "local",
     "validator": {
         "bin": "./bin/polkadot",
         "dockerfile": "./tmp/Dockerfile",
