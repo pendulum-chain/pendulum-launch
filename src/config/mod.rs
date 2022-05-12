@@ -12,6 +12,7 @@ pub use validator::ValidatorConfig;
 pub struct Config {
     pub name: Option<String>,
     pub author: Option<String>,
+    pub mode: Option<String>,
     pub validators: Vec<ValidatorConfig>,
     pub collators: Vec<CollatorConfig>,
 }
@@ -20,15 +21,16 @@ impl Config {
     pub fn new(
         name: Option<&str>,
         author: Option<&str>,
+        mode: Option<&str>,
         validators: Vec<ValidatorConfig>,
         collators: Vec<CollatorConfig>,
     ) -> Self {
-        let name = name.map(|name| name.to_string());
-        let author = author.map(|author| author.to_string());
+        let to_string = |value: &str| value.to_string();
 
         Self {
-            name,
-            author,
+            name: name.map(to_string),
+            author: author.map(to_string),
+            mode: mode.map(to_string),
             validators,
             collators,
         }
