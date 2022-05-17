@@ -57,8 +57,8 @@ impl<'a> Launcher {
         let name = config.name.to_owned();
         let author = config.author.to_owned();
         let mode = LauncherMode::from(config.mode);
-        let validators = config.validators.into_iter().map(Validator::from).collect();
-        let collators = config.collators.into_iter().map(Collator::from).collect();
+        let validators = config.validator.into();
+        let collators = config.collator.into();
 
         Ok(Self {
             name,

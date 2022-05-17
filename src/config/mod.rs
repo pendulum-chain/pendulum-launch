@@ -13,8 +13,8 @@ pub struct Config {
     pub name: Option<String>,
     pub author: Option<String>,
     pub mode: Option<String>,
-    pub validators: Vec<ValidatorConfig>,
-    pub collators: Vec<CollatorConfig>,
+    pub validator: ValidatorConfig,
+    pub collator: CollatorConfig,
 }
 
 impl Config {
@@ -22,8 +22,8 @@ impl Config {
         name: Option<&str>,
         author: Option<&str>,
         mode: Option<&str>,
-        validators: Vec<ValidatorConfig>,
-        collators: Vec<CollatorConfig>,
+        validator: ValidatorConfig,
+        collator: CollatorConfig,
     ) -> Self {
         let to_string = |value: &str| value.to_string();
 
@@ -31,8 +31,8 @@ impl Config {
             name: name.map(to_string),
             author: author.map(to_string),
             mode: mode.map(to_string),
-            validators,
-            collators,
+            validator,
+            collator,
         }
     }
 
