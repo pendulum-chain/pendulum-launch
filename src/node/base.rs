@@ -62,6 +62,7 @@ impl Node for BaseNode {
 
     fn args(&self) -> Result<Vec<String>> {
         let mut args = self.args.to_owned();
+
         args.append(
             vec![
                 "--name".to_owned(),
