@@ -2,6 +2,7 @@ use crate::{
     node::{Collator, Node, Validator},
     task::{Task, TaskManager},
     Config, Error, PathBuffer, Result,
+    registrar as Registrar
 };
 use lazy_static::lazy_static;
 use std::{
@@ -75,6 +76,14 @@ impl<'a> Launcher {
         let mut task_manager = TaskManager::new(tasks);
 
         task_manager.run()
+    }
+
+    pub fn register(&self) -> &Self {
+        //TODO: Error handling
+        async {
+            Registrar::register_parachain(self).await.unwrap();
+        };
+        self
     }
 
     pub fn generate_tasks(&mut self) -> Result<Vec<Task>> {

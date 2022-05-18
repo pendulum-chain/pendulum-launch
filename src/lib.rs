@@ -10,7 +10,7 @@ mod path_buffer;
 pub mod sub_command;
 mod task;
 pub mod util;
-//mod registrar;
+mod registrar;
 
 pub use config::Config;
 pub use error::{Error, Result};

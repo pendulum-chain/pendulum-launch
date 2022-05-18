@@ -43,7 +43,7 @@ impl App {
                     enable_volume,
                 } => self.generate_docker(outdir.to_owned(), enable_volume.to_owned())?,
             },
-            None => self.launcher.run()?,
+            None => self.launcher.register().run()?,
         };
 
         Ok(())
