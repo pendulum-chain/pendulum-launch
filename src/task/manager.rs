@@ -1,5 +1,5 @@
 use super::Task;
-use crate::Result;
+use crate::{registrar as Registrar, Result};
 use std::{
     sync::{Arc, Condvar, Mutex},
     time::{Duration, Instant},
@@ -31,6 +31,11 @@ impl<'a> TaskManager {
         // Flag for validating completion of tasks
         let finished_pair = Arc::new((Mutex::new(false), Condvar::new()));
 
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+
         // Listen for SIGINT, setting the finish flag and notifying the condition variable upon
         // receival
         let finished_pair_clone = Arc::clone(&finished_pair);
@@ -43,6 +48,10 @@ impl<'a> TaskManager {
         ctrlc::set_handler(sig_handler)?;
 
         self.start()?;
+
+        rt.block_on(async {
+            Registrar::register_parachain().await.unwrap();
+        });
 
         // Wait for the thread to finish
         let (lock, cvar) = &*finished_pair;

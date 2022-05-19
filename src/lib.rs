@@ -7,10 +7,10 @@ mod error;
 mod launcher;
 pub mod node;
 mod path_buffer;
+mod registrar;
 pub mod sub_command;
 mod task;
 pub mod util;
-mod registrar;
 
 pub use config::Config;
 pub use error::{Error, Result};

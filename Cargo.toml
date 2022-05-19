@@ -26,3 +26,4 @@ structopt = "0.3.26"
 thiserror = "1.0.30"
 subxt = "0.21.0"
 parity-scale-codec = "*"
+tokio = { version = "1.18.2", feautures = ["rt"]}

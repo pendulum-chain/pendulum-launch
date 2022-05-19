@@ -1388,6 +1388,7 @@ dependencies = [
  "structopt",
  "subxt",
  "thiserror",
+ "tokio",
 ]
 
 [[package]]
