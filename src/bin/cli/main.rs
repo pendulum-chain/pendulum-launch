@@ -9,5 +9,3 @@ use opt::Options;
 fn main() -> Result<()> {
     App::from_args()?.run()
 }
-
-fn do_nothing() {}

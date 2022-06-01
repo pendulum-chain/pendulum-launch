@@ -42,7 +42,10 @@ impl<'a> TaskManager {
         };
         ctrlc::set_handler(sig_handler)?;
 
-        self.start()?;
+        if let Err(err) = self.start() {
+            self.shutdown()?;
+            return Err(err);
+        }
 
         // Wait for the thread to finish
         let (lock, cvar) = &*finished_pair;
