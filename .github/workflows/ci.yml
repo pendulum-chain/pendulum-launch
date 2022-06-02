@@ -5,7 +5,6 @@ name: continuous-integration
 jobs:
   ci:
     strategy:
-      fail-test: false
       matrix:
         platform: [ubuntu-latest, macos-latest]
         rust:
